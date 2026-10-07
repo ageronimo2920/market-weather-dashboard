@@ -1133,7 +1133,7 @@ body.overview-mode .page-header {
                 <div class="overview-chart-footer">
 
                     <span id="overview-chart-start">
-                        --
+                        9:30 AM
                     </span>
 
                     <span>
@@ -1141,7 +1141,7 @@ body.overview-mode .page-header {
                     </span>
 
                     <span id="overview-chart-end">
-                        --
+                        4:00 PM
                     </span>
 
                 </div>
@@ -1464,7 +1464,7 @@ body.overview-mode .page-header {
                 <div class="chart-footer">
 
                     <span id="chart-start">
-                        --
+                        9:30 AM
                     </span>
 
                     <span>
@@ -1472,7 +1472,7 @@ body.overview-mode .page-header {
                     </span>
 
                     <span id="chart-end">
-                        --
+                        4:00 PM
                     </span>
 
                 </div>
@@ -1519,6 +1519,7 @@ body.overview-mode .page-header {
             </div>
 
         </div>
+
 
 
 
@@ -3498,6 +3499,76 @@ async function getSP500ChartData() {
 }
 
 
+function getTradingSessionBounds(date) {
+
+    const parts =
+        new Intl.DateTimeFormat(
+            "en-US",
+            {
+                timeZone: "America/New_York",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+            }
+        ).formatToParts(date);
+
+    const year =
+        Number(parts.find(part => part.type === "year").value);
+
+    const month =
+        Number(parts.find(part => part.type === "month").value);
+
+    const day =
+        Number(parts.find(part => part.type === "day").value);
+
+    const offsetText =
+        new Intl.DateTimeFormat(
+            "en-US",
+            {
+                timeZone: "America/New_York",
+                timeZoneName: "shortOffset",
+                hour: "numeric"
+            }
+        ).formatToParts(date)
+            .find(part => part.type === "timeZoneName")
+            .value;
+
+    const match =
+        offsetText.match(/GMT([+-])(\d+)(?::(\d+))?/);
+
+    const offsetMinutes = match
+        ? (match[1] === "-" ? -1 : 1) *
+          (Number(match[2]) * 60 + Number(match[3] || 0))
+        : -300;
+
+    const utcDay =
+        Date.UTC(year, month - 1, day);
+
+    return {
+        start: new Date(
+            utcDay + ((9 * 60 + 30) - offsetMinutes) * 60000
+        ),
+        end: new Date(
+            utcDay + ((16 * 60) - offsetMinutes) * 60000
+        )
+    };
+}
+
+
+function formatChartAxisTime(date) {
+
+    return new Intl.DateTimeFormat(
+        "en-US",
+        {
+            timeZone: "America/New_York",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        }
+    ).format(date);
+}
+
+
 /* =========================================================
    FULL S&P CHART
    ========================================================= */
@@ -3505,450 +3576,179 @@ async function getSP500ChartData() {
 function drawSP500Chart(candles) {
 
     const canvas =
-        document.getElementById(
-            "sp500-chart"
-        );
+        document.getElementById("sp500-chart");
 
     const loading =
-        document.getElementById(
-            "chart-loading"
-        );
+        document.getElementById("chart-loading");
 
-    if (
-        !canvas ||
-        !candles ||
-        !candles.length
-    ) {
-
+    if (!canvas || !candles || !candles.length) {
         return;
     }
 
-    const rect =
-        canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(300, rect.width);
+    const height = Math.max(160, rect.height);
 
-    const dpr =
-        window.devicePixelRatio ||
-        1;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
 
-    const width =
-        Math.max(
-            300,
-            rect.width
-        );
+    const ctx = canvas.getContext("2d");
 
-    const height =
-        Math.max(
-            160,
-            rect.height
-        );
-
-    canvas.width =
-        Math.round(
-            width * dpr
-        );
-
-    canvas.height =
-        Math.round(
-            height * dpr
-        );
-
-    const ctx =
-        canvas.getContext(
-            "2d"
-        );
-
-    ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-    );
-
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
 
     const padding = {
         top: 10,
-        right: 44,
-        bottom: 18,
+        right: 52,
+        bottom: 24,
         left: 6
     };
 
-    const chartWidth =
-        width -
-        padding.left -
-        padding.right;
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
 
-    const chartHeight =
-        height -
-        padding.top -
-        padding.bottom;
+    const session = getTradingSessionBounds(candles[0].time);
+    const sessionStart = session.start.getTime();
+    const sessionEnd = session.end.getTime();
+    const sessionLength = sessionEnd - sessionStart;
 
-    const lows =
-        candles.map(
-            candle =>
-                candle.low
-        );
+    const visible = candles.filter(candle => {
+        const t = candle.time.getTime();
+        return t >= sessionStart && t <= sessionEnd;
+    });
 
-    const highs =
-        candles.map(
-            candle =>
-                candle.high
-        );
-
-    let minPrice =
-        Math.min(
-            ...lows
-        );
-
-    let maxPrice =
-        Math.max(
-            ...highs
-        );
-
-    const range =
-        maxPrice -
-        minPrice;
-
-    const paddingPrice =
-        range * 0.08;
-
-    minPrice -=
-        paddingPrice;
-
-    maxPrice +=
-        paddingPrice;
-
-    const priceToY =
-        price =>
-            padding.top +
-            (
-                maxPrice -
-                price
-            ) /
-            (
-                maxPrice -
-                minPrice
-            ) *
-            chartHeight;
-
-    ctx.strokeStyle =
-        "#272c34";
-
-    ctx.lineWidth =
-        1;
-
-    ctx.font =
-        "10px Arial";
-
-    ctx.fillStyle =
-        "#777f89";
-
-
-    for (
-        let i = 0;
-        i <= 4;
-        i++
-    ) {
-
-        const y =
-            padding.top +
-            chartHeight *
-            i / 4;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            padding.left,
-            y
-        );
-
-        ctx.lineTo(
-            width -
-            padding.right,
-            y
-        );
-
-        ctx.stroke();
-
-        const price =
-            maxPrice -
-            (
-                maxPrice -
-                minPrice
-            ) *
-            i / 4;
-
-        ctx.fillText(
-            price.toFixed(0),
-            width -
-                padding.right +
-                6,
-            y + 3
-        );
+    if (!visible.length) {
+        return;
     }
 
+    const lows = visible.map(candle => candle.low);
+    const highs = visible.map(candle => candle.high);
 
-    const sp500Data =
-        marketCache["^GSPC"];
+    let minPrice = Math.min(...lows);
+    let maxPrice = Math.max(...highs);
+    const range = maxPrice - minPrice;
+    const pricePadding = range > 0 ? range * 0.08 : 5;
+
+    minPrice -= pricePadding;
+    maxPrice += pricePadding;
+
+    const priceToY = price =>
+        padding.top +
+        (maxPrice - price) / (maxPrice - minPrice) * chartHeight;
+
+    const timeToX = time =>
+        padding.left +
+        ((time - sessionStart) / sessionLength) * chartWidth;
+
+    ctx.strokeStyle = "#272c34";
+    ctx.lineWidth = 1;
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "#777f89";
+
+    for (let i = 0; i <= 4; i++) {
+        const y = padding.top + chartHeight * i / 4;
+
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
+        ctx.stroke();
+
+        const price = maxPrice - (maxPrice - minPrice) * i / 4;
+        ctx.fillText(price.toFixed(0), width - padding.right + 6, y + 3);
+    }
+
+    const xLabels = [
+        [0, "9:30 AM"],
+        [0.25, "11:00 AM"],
+        [0.5, "1:00 PM"],
+        [0.75, "2:30 PM"],
+        [1, "4:00 PM"]
+    ];
+
+    xLabels.forEach(([fraction, label]) => {
+        const x = padding.left + chartWidth * fraction;
+
+        ctx.strokeStyle = "#20242b";
+        ctx.beginPath();
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
+        ctx.stroke();
+
+        ctx.fillStyle = "#777f89";
+        const textWidth = ctx.measureText(label).width;
+        const labelX = Math.max(
+            padding.left,
+            Math.min(x - textWidth / 2, width - padding.right - textWidth)
+        );
+        ctx.fillText(label, labelX, height - 5);
+    });
+
+    const sp500Data = marketCache["^GSPC"];
 
     if (
         sp500Data &&
-        typeof sp500Data.fiftyTwoWeekHigh ===
-            "number" &&
-        sp500Data.fiftyTwoWeekHigh >=
-            minPrice &&
-        sp500Data.fiftyTwoWeekHigh <=
-            maxPrice
+        typeof sp500Data.fiftyTwoWeekHigh === "number" &&
+        sp500Data.fiftyTwoWeekHigh >= minPrice &&
+        sp500Data.fiftyTwoWeekHigh <= maxPrice
     ) {
-
-        const highY =
-            priceToY(
-                sp500Data.fiftyTwoWeekHigh
-            );
+        const highY = priceToY(sp500Data.fiftyTwoWeekHigh);
 
         ctx.save();
-
-        ctx.setLineDash([
-            4,
-            4
-        ]);
-
-        ctx.strokeStyle =
-            "#59616c";
-
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = "#59616c";
         ctx.beginPath();
-
-        ctx.moveTo(
-            padding.left,
-            highY
-        );
-
-        ctx.lineTo(
-            width -
-                padding.right,
-            highY
-        );
-
+        ctx.moveTo(padding.left, highY);
+        ctx.lineTo(width - padding.right, highY);
         ctx.stroke();
-
         ctx.restore();
 
-        ctx.fillStyle =
-            "#8b939d";
-
-        ctx.fillText(
-            "52W",
-            padding.left + 4,
-            highY - 4
-        );
+        ctx.fillStyle = "#8b939d";
+        ctx.fillText("52W", padding.left + 4, highY - 4);
     }
 
+    const slotWidth = chartWidth / 78;
+    const bodyWidth = Math.max(2, Math.min(7, slotWidth * 0.62));
 
-    const candleSpacing =
-        chartWidth /
-        candles.length;
+    visible.forEach(candle => {
+        const x = timeToX(candle.time.getTime());
+        const openY = priceToY(candle.open);
+        const closeY = priceToY(candle.close);
+        const highY = priceToY(candle.high);
+        const lowY = priceToY(candle.low);
+        const rising = candle.close >= candle.open;
 
-    const bodyWidth =
-        Math.max(
-            2,
-            Math.min(
-                7,
-                candleSpacing *
-                0.62
-            )
-        );
+        const bodyTop = Math.min(openY, closeY);
+        const bodyHeight = Math.max(1, Math.abs(closeY - openY));
 
+        ctx.strokeStyle = rising ? "#59c98b" : "#ef7373";
+        ctx.fillStyle = rising ? "#59c98b" : "#ef7373";
 
-    candles.forEach(
-        (
-            candle,
-            index
-        ) => {
+        ctx.beginPath();
+        ctx.moveTo(x, highY);
+        ctx.lineTo(x, lowY);
+        ctx.stroke();
 
-            const x =
-                padding.left +
-                index *
-                    candleSpacing +
-                candleSpacing / 2;
+        ctx.fillRect(x - bodyWidth / 2, bodyTop, bodyWidth, bodyHeight);
+    });
 
-            const openY =
-                priceToY(
-                    candle.open
-                );
-
-            const closeY =
-                priceToY(
-                    candle.close
-                );
-
-            const highY =
-                priceToY(
-                    candle.high
-                );
-
-            const lowY =
-                priceToY(
-                    candle.low
-                );
-
-            const rising =
-                candle.close >=
-                candle.open;
-
-            const bodyTop =
-                Math.min(
-                    openY,
-                    closeY
-                );
-
-            const bodyHeight =
-                Math.max(
-                    1,
-                    Math.abs(
-                        closeY -
-                        openY
-                    )
-                );
-
-            ctx.strokeStyle =
-                rising
-                    ? "#59c98b"
-                    : "#ef7373";
-
-            ctx.fillStyle =
-                rising
-                    ? "#59c98b"
-                    : "#ef7373";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                x,
-                highY
-            );
-
-            ctx.lineTo(
-                x,
-                lowY
-            );
-
-            ctx.stroke();
-
-            ctx.fillRect(
-                x -
-                    bodyWidth / 2,
-                bodyTop,
-                bodyWidth,
-                bodyHeight
-            );
-        }
-    );
-
-
-    const latest =
-        candles[
-            candles.length - 1
-        ];
-
-    const currentY =
-        priceToY(
-            latest.close
-        );
+    const latest = visible[visible.length - 1];
+    const currentY = priceToY(latest.close);
 
     ctx.save();
-
-    ctx.setLineDash([
-        3,
-        3
-    ]);
-
-    ctx.strokeStyle =
-        "#7d8792";
-
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = "#7d8792";
     ctx.beginPath();
-
-    ctx.moveTo(
-        padding.left,
-        currentY
-    );
-
-    ctx.lineTo(
-        width -
-            padding.right,
-        currentY
-    );
-
+    ctx.moveTo(padding.left, currentY);
+    ctx.lineTo(width - padding.right, currentY);
     ctx.stroke();
-
     ctx.restore();
 
-    ctx.fillStyle =
-        "#dfe2e6";
+    ctx.fillStyle = "#dfe2e6";
+    ctx.font = "bold 10px Arial";
+    ctx.fillText(latest.close.toFixed(2), width - padding.right + 5, currentY - 4);
 
-    ctx.font =
-        "bold 10px Arial";
-
-    ctx.fillText(
-        latest.close.toFixed(2),
-        width -
-            padding.right +
-            5,
-        currentY - 4
-    );
-
-
-    ctx.fillStyle =
-        "#777f89";
-
-    ctx.font =
-        "10px Arial";
-
-    const first =
-        candles[0];
-
-    const last =
-        candles[
-            candles.length - 1
-        ];
-
-    const firstLabel =
-        formatChartTime(
-            first.time
-        );
-
-    const lastLabel =
-        formatChartTime(
-            last.time
-        );
-
-    ctx.fillText(
-        firstLabel,
-        padding.left,
-        height - 3
-    );
-
-    const lastWidth =
-        ctx.measureText(
-            lastLabel
-        ).width;
-
-    ctx.fillText(
-        lastLabel,
-        width -
-            padding.right -
-            lastWidth,
-        height - 3
-    );
-
-    loading.style.display =
-        "none";
+    loading.style.display = "none";
 }
 
 
@@ -3959,438 +3759,149 @@ function drawSP500Chart(candles) {
 function drawOverviewSP500Chart(candles) {
 
     const canvas =
-        document.getElementById(
-            "overview-sp500-chart"
-        );
+        document.getElementById("overview-sp500-chart");
 
     const loading =
-        document.getElementById(
-            "overview-chart-loading"
-        );
+        document.getElementById("overview-chart-loading");
 
-    if (
-        !canvas ||
-        !candles ||
-        !candles.length
-    ) {
-
+    if (!canvas || !candles || !candles.length) {
         return;
     }
 
-    const rect =
-        canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(300, rect.width);
+    const height = Math.max(70, rect.height);
 
-    const dpr =
-        window.devicePixelRatio ||
-        1;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
 
-    const width =
-        Math.max(
-            300,
-            rect.width
-        );
-
-    const height =
-        Math.max(
-            70,
-            rect.height
-        );
-
-    canvas.width =
-        Math.round(
-            width * dpr
-        );
-
-    canvas.height =
-        Math.round(
-            height * dpr
-        );
-
-    const ctx =
-        canvas.getContext(
-            "2d"
-        );
-
-    ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-    );
-
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
-
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
 
     const padding = {
         top: 8,
-        right: 48,
-        bottom: 6,
+        right: 50,
+        bottom: 18,
         left: 4
     };
 
-    const chartWidth =
-        width -
-        padding.left -
-        padding.right;
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
 
-    const chartHeight =
-        height -
-        padding.top -
-        padding.bottom;
+    const session = getTradingSessionBounds(candles[0].time);
+    const sessionStart = session.start.getTime();
+    const sessionEnd = session.end.getTime();
+    const sessionLength = sessionEnd - sessionStart;
 
+    const visible = candles.filter(candle => {
+        const t = candle.time.getTime();
+        return t >= sessionStart && t <= sessionEnd;
+    });
 
-    const lows =
-        candles.map(
-            candle =>
-                candle.low
-        );
+    if (!visible.length) {
+        return;
+    }
 
-    const highs =
-        candles.map(
-            candle =>
-                candle.high
-        );
+    const lows = visible.map(candle => candle.low);
+    const highs = visible.map(candle => candle.high);
 
-    let minPrice =
-        Math.min(
-            ...lows
-        );
+    let minPrice = Math.min(...lows);
+    let maxPrice = Math.max(...highs);
+    const range = maxPrice - minPrice;
+    const pricePadding = range > 0 ? range * 0.10 : 5;
 
-    let maxPrice =
-        Math.max(
-            ...highs
-        );
+    minPrice -= pricePadding;
+    maxPrice += pricePadding;
 
-    const range =
-        maxPrice -
-        minPrice;
+    const priceToY = price =>
+        padding.top +
+        (maxPrice - price) / (maxPrice - minPrice) * chartHeight;
 
-    const pricePadding =
-        range > 0
-            ? range * 0.10
-            : 1;
+    const timeToX = time =>
+        padding.left +
+        ((time - sessionStart) / sessionLength) * chartWidth;
 
-    minPrice -=
-        pricePadding;
+    ctx.strokeStyle = "#272c34";
+    ctx.lineWidth = 1;
+    ctx.font = "9px Arial";
+    ctx.fillStyle = "#777f89";
 
-    maxPrice +=
-        pricePadding;
-
-
-    const priceToY =
-        price =>
-            padding.top +
-            (
-                maxPrice -
-                price
-            ) /
-            (
-                maxPrice -
-                minPrice
-            ) *
-            chartHeight;
-
-
-    /* Subtle horizontal guides */
-
-    ctx.strokeStyle =
-        "#272c34";
-
-    ctx.lineWidth =
-        1;
-
-    for (
-        let i = 1;
-        i <= 2;
-        i++
-    ) {
-
-        const y =
-            padding.top +
-            chartHeight *
-            i / 3;
-
+    for (let i = 0; i <= 2; i++) {
+        const y = padding.top + chartHeight * i / 2;
         ctx.beginPath();
-
-        ctx.moveTo(
-            padding.left,
-            y
-        );
-
-        ctx.lineTo(
-            width -
-                padding.right,
-            y
-        );
-
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
         ctx.stroke();
     }
 
+    const xLabels = [
+        [0, "9:30"],
+        [0.5, "1:00"],
+        [1, "4:00"]
+    ];
 
-    /* 52-week high line */
+    xLabels.forEach(([fraction, label]) => {
+        const x = padding.left + chartWidth * fraction;
 
-    const sp500Data =
-        marketCache["^GSPC"];
-
-    if (
-        sp500Data &&
-        typeof sp500Data.fiftyTwoWeekHigh ===
-            "number" &&
-        sp500Data.fiftyTwoWeekHigh >=
-            minPrice &&
-        sp500Data.fiftyTwoWeekHigh <=
-            maxPrice
-    ) {
-
-        const highY =
-            priceToY(
-                sp500Data.fiftyTwoWeekHigh
-            );
-
-        ctx.save();
-
-        ctx.setLineDash([
-            4,
-            4
-        ]);
-
-        ctx.strokeStyle =
-            "#59616c";
-
+        ctx.strokeStyle = "#20242b";
         ctx.beginPath();
-
-        ctx.moveTo(
-            padding.left,
-            highY
-        );
-
-        ctx.lineTo(
-            width -
-                padding.right,
-            highY
-        );
-
+        ctx.moveTo(x, padding.top);
+        ctx.lineTo(x, padding.top + chartHeight);
         ctx.stroke();
 
-        ctx.restore();
-
-        ctx.fillStyle =
-            "#8b939d";
-
-        ctx.font =
-            "9px Arial";
-
-        ctx.fillText(
-            "52W",
-            padding.left + 4,
-            highY - 3
+        ctx.fillStyle = "#777f89";
+        const textWidth = ctx.measureText(label).width;
+        const labelX = Math.max(
+            padding.left,
+            Math.min(x - textWidth / 2, width - padding.right - textWidth)
         );
-    }
+        ctx.fillText(label, labelX, height - 3);
+    });
 
+    const slotWidth = chartWidth / 78;
+    const bodyWidth = Math.max(1.5, Math.min(5, slotWidth * 0.62));
 
-    /* Candlesticks */
+    visible.forEach(candle => {
+        const x = timeToX(candle.time.getTime());
+        const openY = priceToY(candle.open);
+        const closeY = priceToY(candle.close);
+        const highY = priceToY(candle.high);
+        const lowY = priceToY(candle.low);
+        const rising = candle.close >= candle.open;
 
-    const candleSpacing =
-        chartWidth /
-        candles.length;
+        const bodyTop = Math.min(openY, closeY);
+        const bodyHeight = Math.max(1, Math.abs(closeY - openY));
 
-    const bodyWidth =
-        Math.max(
-            1.5,
-            Math.min(
-                5,
-                candleSpacing * 0.62
-            )
-        );
+        ctx.strokeStyle = rising ? "#59c98b" : "#ef7373";
+        ctx.fillStyle = rising ? "#59c98b" : "#ef7373";
 
+        ctx.beginPath();
+        ctx.moveTo(x, highY);
+        ctx.lineTo(x, lowY);
+        ctx.stroke();
 
-    candles.forEach(
-        (
-            candle,
-            index
-        ) => {
+        ctx.fillRect(x - bodyWidth / 2, bodyTop, bodyWidth, bodyHeight);
+    });
 
-            const x =
-                padding.left +
-                index *
-                    candleSpacing +
-                candleSpacing / 2;
-
-            const openY =
-                priceToY(
-                    candle.open
-                );
-
-            const closeY =
-                priceToY(
-                    candle.close
-                );
-
-            const highY =
-                priceToY(
-                    candle.high
-                );
-
-            const lowY =
-                priceToY(
-                    candle.low
-                );
-
-            const rising =
-                candle.close >=
-                candle.open;
-
-            const bodyTop =
-                Math.min(
-                    openY,
-                    closeY
-                );
-
-            const bodyHeight =
-                Math.max(
-                    1,
-                    Math.abs(
-                        closeY -
-                        openY
-                    )
-                );
-
-            ctx.strokeStyle =
-                rising
-                    ? "#59c98b"
-                    : "#ef7373";
-
-            ctx.fillStyle =
-                rising
-                    ? "#59c98b"
-                    : "#ef7373";
-
-            /* Wick */
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                x,
-                highY
-            );
-
-            ctx.lineTo(
-                x,
-                lowY
-            );
-
-            ctx.stroke();
-
-            /* Body */
-
-            ctx.fillRect(
-                x -
-                    bodyWidth / 2,
-                bodyTop,
-                bodyWidth,
-                bodyHeight
-            );
-        }
-    );
-
-
-    /* Current price */
-
-    const latest =
-        candles[
-            candles.length - 1
-        ];
-
-    const latestY =
-        priceToY(
-            latest.close
-        );
+    const latest = visible[visible.length - 1];
+    const currentY = priceToY(latest.close);
 
     ctx.save();
-
-    ctx.setLineDash([
-        3,
-        3
-    ]);
-
-    ctx.strokeStyle =
-        "#7d8792";
-
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = "#7d8792";
     ctx.beginPath();
-
-    ctx.moveTo(
-        padding.left,
-        latestY
-    );
-
-    ctx.lineTo(
-        width -
-            padding.right,
-        latestY
-    );
-
+    ctx.moveTo(padding.left, currentY);
+    ctx.lineTo(width - padding.right, currentY);
     ctx.stroke();
-
     ctx.restore();
 
-    ctx.fillStyle =
-        "#dfe2e6";
+    ctx.fillStyle = "#dfe2e6";
+    ctx.font = "bold 9px Arial";
+    ctx.fillText(latest.close.toFixed(0), width - padding.right + 5, currentY - 3);
 
-    ctx.font =
-        "bold 9px Arial";
-
-    ctx.fillText(
-        latest.close.toFixed(2),
-        width -
-            padding.right +
-            5,
-        latestY - 3
-    );
-
-
-    /* Update labels */
-
-    document.getElementById(
-        "overview-chart-current"
-    ).textContent =
-        formatNumber(
-            latest.close
-        );
-
-    document.getElementById(
-        "overview-chart-current"
-    ).className =
-        "overview-chart-current " +
-        (
-            latest.close >=
-                latest.open
-                ? "positive"
-                : "negative"
-        );
-
-    document.getElementById(
-        "overview-chart-start"
-    ).textContent =
-        formatChartTime(
-            candles[0].time
-        );
-
-    document.getElementById(
-        "overview-chart-end"
-    ).textContent =
-        formatChartTime(
-            latest.time
-        );
-
-    loading.style.display =
-        "none";
+    loading.style.display = "none";
 }
 
 
@@ -4780,21 +4291,6 @@ async function updateSP500Chart() {
                 : "negative"
         );
 
-    document.getElementById(
-        "chart-start"
-    ).textContent =
-        formatChartTime(
-            candles[0].time
-        );
-
-    document.getElementById(
-        "chart-end"
-    ).textContent =
-        formatChartTime(
-            candles[
-                candles.length - 1
-            ].time
-        );
 
 
     drawSP500Chart(
