@@ -256,6 +256,42 @@ h2 {
     color: #777f89;
 }
 
+.sp500-returns {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #272c34;
+}
+
+.sp500-return {
+    min-width: 0;
+    text-align: center;
+}
+
+.sp500-return-label {
+    color: #777f89;
+    font-size: 9px;
+    margin-bottom: 2px;
+}
+
+.sp500-return-value {
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+    .sp500-returns {
+        gap: 4px;
+    }
+
+    .sp500-return-value {
+        font-size: 10px;
+    }
+}
+
 /* =========================================================
    WEATHER + FORECAST
    ========================================================= */
@@ -907,6 +943,13 @@ body.overview-mode .page-header {
                             52W High --
                         </div>
 
+                        <div
+                            class="overview-market-high"
+                            id="overview-sp500-low"
+                        >
+                            52W Low --
+                        </div>
+
                     </div>
 
 
@@ -1279,10 +1322,24 @@ body.overview-mode .page-header {
                     </div>
 
                     <div
+                        class="high52"
+                        id="sp500-low"
+                    >
+                        52W Low --
+                    </div>
+
+                    <div
                         class="market-status"
                         id="sp500-status"
                     >
                         ● --
+                    </div>
+
+                    <div
+                        class="market-updated"
+                        id="sp500-updated"
+                    >
+                        Updated --
                     </div>
 
                 </div>
@@ -1315,6 +1372,13 @@ body.overview-mode .page-header {
                         ● --
                     </div>
 
+                    <div
+                        class="market-updated"
+                        id="nasdaq-updated"
+                    >
+                        Updated --
+                    </div>
+
                 </div>
 
 
@@ -1345,178 +1409,11 @@ body.overview-mode .page-header {
                         ● --
                     </div>
 
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- MACRO -->
-
-        <div class="section">
-
-            <h2>MACRO</h2>
-
-            <div class="macro-grid">
-
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        U.S. 10-Year
-                    </div>
-
                     <div
-                        class="market-price"
-                        id="tnx-price"
+                        class="market-updated"
+                        id="vix-updated"
                     >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="tnx-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="tnx-status"
-                    >
-                        ● --
-                    </div>
-
-                </div>
-
-
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        WTI Crude
-                    </div>
-
-                    <div
-                        class="market-price"
-                        id="wti-price"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="wti-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="wti-status"
-                    >
-                        ● --
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- GLOBAL + FUTURES -->
-
-        <div class="section">
-
-            <h2>GLOBAL + FUTURES</h2>
-
-            <div class="market-grid">
-
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        S&amp;P 500 Futures
-                    </div>
-
-                    <div
-                        class="market-price"
-                        id="sp500f-price"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="sp500f-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="sp500f-status"
-                    >
-                        ● --
-                    </div>
-
-                </div>
-
-
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        Nikkei 225
-                    </div>
-
-                    <div
-                        class="market-price"
-                        id="nikkei-price"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="nikkei-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="nikkei-status"
-                    >
-                        ● --
-                    </div>
-
-                </div>
-
-
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        FTSE 100
-                    </div>
-
-                    <div
-                        class="market-price"
-                        id="ftse-price"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="ftse-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="ftse-status"
-                    >
-                        ● --
+                        Updated --
                     </div>
 
                 </div>
@@ -1577,6 +1474,255 @@ body.overview-mode .page-header {
                     <span id="chart-end">
                         --
                     </span>
+
+                </div>
+
+                <div class="sp500-returns">
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">1D</div>
+                        <div class="sp500-return-value" id="sp500-return-1d">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">5D</div>
+                        <div class="sp500-return-value" id="sp500-return-5d">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">1M</div>
+                        <div class="sp500-return-value" id="sp500-return-1m">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">3M</div>
+                        <div class="sp500-return-value" id="sp500-return-3m">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">6M</div>
+                        <div class="sp500-return-value" id="sp500-return-6m">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">YTD</div>
+                        <div class="sp500-return-value" id="sp500-return-ytd">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">1Y</div>
+                        <div class="sp500-return-value" id="sp500-return-1y">--</div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- MACRO -->
+
+        <div class="section">
+
+            <h2>MACRO</h2>
+
+            <div class="macro-grid">
+
+                <div class="card market-card">
+
+                    <div class="market-name">
+                        U.S. 10-Year
+                    </div>
+
+                    <div
+                        class="market-price"
+                        id="tnx-price"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-change"
+                        id="tnx-change"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-status"
+                        id="tnx-status"
+                    >
+                        ● --
+                    </div>
+
+                    <div
+                        class="market-updated"
+                        id="tnx-updated"
+                    >
+                        Updated --
+                    </div>
+
+                </div>
+
+
+                <div class="card market-card">
+
+                    <div class="market-name">
+                        WTI Crude
+                    </div>
+
+                    <div
+                        class="market-price"
+                        id="wti-price"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-change"
+                        id="wti-change"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-status"
+                        id="wti-status"
+                    >
+                        ● --
+                    </div>
+
+                    <div
+                        class="market-updated"
+                        id="wti-updated"
+                    >
+                        Updated --
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- GLOBAL + FUTURES -->
+
+        <div class="section">
+
+            <h2>GLOBAL + FUTURES</h2>
+
+            <div class="market-grid">
+
+                <div class="card market-card">
+
+                    <div class="market-name">
+                        S&amp;P 500 Futures
+                    </div>
+
+                    <div
+                        class="market-price"
+                        id="sp500f-price"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-change"
+                        id="sp500f-change"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-status"
+                        id="sp500f-status"
+                    >
+                        ● --
+                    </div>
+
+                    <div
+                        class="market-updated"
+                        id="sp500f-updated"
+                    >
+                        Updated --
+                    </div>
+
+                </div>
+
+
+                <div class="card market-card">
+
+                    <div class="market-name">
+                        Nikkei 225
+                    </div>
+
+                    <div
+                        class="market-price"
+                        id="nikkei-price"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-change"
+                        id="nikkei-change"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-status"
+                        id="nikkei-status"
+                    >
+                        ● --
+                    </div>
+
+                    <div
+                        class="market-updated"
+                        id="nikkei-updated"
+                    >
+                        Updated --
+                    </div>
+
+                </div>
+
+
+                <div class="card market-card">
+
+                    <div class="market-name">
+                        FTSE 100
+                    </div>
+
+                    <div
+                        class="market-price"
+                        id="ftse-price"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-change"
+                        id="ftse-change"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-status"
+                        id="ftse-status"
+                    >
+                        ● --
+                    </div>
+
+                    <div
+                        class="market-updated"
+                        id="ftse-updated"
+                    >
+                        Updated --
+                    </div>
 
                 </div>
 
@@ -1980,6 +2126,16 @@ async function getYahooQuote(symbol) {
             meta.fiftyTwoWeekHigh ??
             null;
 
+        const fiftyTwoWeekLow =
+            meta.fiftyTwoWeekLow ??
+            null;
+
+        const marketTimestamp =
+            typeof meta.regularMarketTime ===
+                "number"
+                ? new Date(meta.regularMarketTime * 1000)
+                : null;
+
         const dayHigh =
             meta.regularMarketDayHigh ??
             (() => {
@@ -2033,7 +2189,9 @@ async function getYahooQuote(symbol) {
             change,
             changePct,
             fiftyTwoWeekHigh,
+            fiftyTwoWeekLow,
             dayHigh,
+            marketTimestamp,
             pulledAt: new Date()
 
         };
@@ -2163,19 +2321,11 @@ function getUSStockStatus() {
             "America/New_York"
         );
 
-    if (
-        !isWeekday(parts)
-    ) {
-
+    if (!isWeekday(parts)) {
         return "CLOSED";
     }
 
-    if (
-        stockMarketHolidays2026.has(
-            dateKey(parts)
-        )
-    ) {
-
+    if (stockMarketHolidays2026.has(dateKey(parts))) {
         return "CLOSED";
     }
 
@@ -2198,6 +2348,119 @@ function getUSStockStatus() {
 }
 
 
+/*
+   VIX is different from the regular U.S. equity indexes.
+   Cboe calculates the VIX index during:
+   - 3:15 AM–9:25 AM ET (Global Trading Hours)
+   - 9:30 AM–4:15 PM ET (Regular Trading Hours)
+   The 4:15–5:00 PM ET period is treated as EXTENDED/curb.
+*/
+function getVIXStatus() {
+
+    const parts =
+        getTimeParts(
+            "America/New_York"
+        );
+
+    if (!isWeekday(parts)) {
+        return "CLOSED";
+    }
+
+    if (stockMarketHolidays2026.has(dateKey(parts))) {
+        return "CLOSED";
+    }
+
+    const minutes =
+        parts.hour * 60 +
+        parts.minute;
+
+    const gthStart =
+        3 * 60 + 15;
+
+    const gthEnd =
+        9 * 60 + 25;
+
+    const rthStart =
+        9 * 60 + 30;
+
+    const rthEnd =
+        16 * 60 + 15;
+
+    const curbEnd =
+        17 * 60;
+
+    if (
+        minutes >= gthStart &&
+        minutes < gthEnd
+    ) {
+        return "EXTENDED";
+    }
+
+    if (
+        minutes >= rthStart &&
+        minutes < rthEnd
+    ) {
+        return "OPEN";
+    }
+
+    if (
+        minutes >= rthEnd &&
+        minutes < curbEnd
+    ) {
+        return "EXTENDED";
+    }
+
+    return "CLOSED";
+}
+
+
+/*
+   U.S. Treasury yield data can update outside the cash equity session.
+   Treat the displayed 10-Year quote as EXTENDED outside the regular
+   U.S. cash session on weekdays, rather than incorrectly calling it
+   CLOSED while the quote is still changing.
+*/
+function getTreasuryStatus() {
+
+    const parts =
+        getTimeParts(
+            "America/New_York"
+        );
+
+    if (!isWeekday(parts)) {
+        return "CLOSED";
+    }
+
+    if (stockMarketHolidays2026.has(dateKey(parts))) {
+        return "CLOSED";
+    }
+
+    const minutes =
+        parts.hour * 60 +
+        parts.minute;
+
+    const open =
+        8 * 60;
+
+    const close =
+        17 * 60;
+
+    return (
+        minutes >= open &&
+        minutes < close
+    )
+        ? "OPEN"
+        : "EXTENDED";
+}
+
+
+/*
+   CME equity-index futures:
+   Regular session runs Sunday–Friday with a daily
+   5:00–6:00 PM ET maintenance break.
+   We use EXTENDED for the overnight/Globex portion and
+   CLOSED during the maintenance/weekend period.
+*/
 function getFuturesStatus() {
 
     const parts =
@@ -2209,55 +2472,30 @@ function getFuturesStatus() {
         parts.hour * 60 +
         parts.minute;
 
-    if (
-        parts.weekday === "Sat"
-    ) {
-
+    if (parts.weekday === "Sat") {
         return "CLOSED";
     }
 
-    if (
-        parts.weekday === "Sun"
-    ) {
-
-        return minutes >=
-            18 * 60
+    if (parts.weekday === "Sun") {
+        return minutes >= 18 * 60
             ? "EXTENDED"
             : "CLOSED";
     }
 
-    if (
-        [
-            "Mon",
-            "Tue",
-            "Wed",
-            "Thu"
-        ].includes(
-            parts.weekday
-        )
-    ) {
-
-        if (
-            minutes >= 17 * 60 &&
-            minutes < 18 * 60
-        ) {
-
-            return "CLOSED";
-        }
-
-        return "EXTENDED";
-    }
-
-    if (
-        parts.weekday === "Fri"
-    ) {
-
+    if (parts.weekday === "Fri") {
         return minutes < 17 * 60
             ? "EXTENDED"
             : "CLOSED";
     }
 
-    return "CLOSED";
+    if (
+        minutes >= 17 * 60 &&
+        minutes < 18 * 60
+    ) {
+        return "CLOSED";
+    }
+
+    return "EXTENDED";
 }
 
 
@@ -2268,10 +2506,7 @@ function getNikkeiStatus() {
             "Asia/Tokyo"
         );
 
-    if (
-        !isWeekday(parts)
-    ) {
-
+    if (!isWeekday(parts)) {
         return "CLOSED";
     }
 
@@ -2289,7 +2524,6 @@ function getNikkeiStatus() {
             minutes < 15 * 60 + 30
         )
     ) {
-
         return "OPEN";
     }
 
@@ -2304,10 +2538,7 @@ function getFTSEStatus() {
             "Europe/London"
         );
 
-    if (
-        !isWeekday(parts)
-    ) {
-
+    if (!isWeekday(parts)) {
         return "CLOSED";
     }
 
@@ -2360,6 +2591,64 @@ function formatYield(value) {
 }
 
 
+function formatMarketTimestamp(date) {
+
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+        return "--";
+    }
+
+    return new Intl.DateTimeFormat(
+        "en-US",
+        {
+            timeZone: "America/New_York",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true
+        }
+    ).format(date);
+}
+
+
+function getMarketStatus(symbol) {
+
+    if (
+        [
+            "^GSPC",
+            "^IXIC"
+        ].includes(symbol)
+    ) {
+        return getUSStockStatus();
+    }
+
+    if (symbol === "^VIX") {
+        return getVIXStatus();
+    }
+
+    if (symbol === "^TNX") {
+        return getTreasuryStatus();
+    }
+
+    if (
+        [
+            "CL=F",
+            "ES=F"
+        ].includes(symbol)
+    ) {
+        return getFuturesStatus();
+    }
+
+    if (symbol === "^N225") {
+        return getNikkeiStatus();
+    }
+
+    if (symbol === "^FTSE") {
+        return getFTSEStatus();
+    }
+
+    return "CLOSED";
+}
+
+
 function updateMarketCard(
     id,
     data,
@@ -2381,31 +2670,35 @@ function updateMarketCard(
             `${id}-status`
         );
 
+    const updatedEl =
+        document.getElementById(
+            `${id}-updated`
+        );
+
     if (!data) {
 
-        priceEl.textContent =
-            "--";
+        priceEl.textContent = "--";
 
-        changeEl.textContent =
-            "--";
+        changeEl.textContent = "--";
+
+        if (updatedEl) {
+            updatedEl.textContent =
+                "Updated --";
+        }
 
         return;
     }
 
     let priceText;
 
-    if (
-        options.commodity
-    ) {
+    if (options.commodity) {
 
         priceText =
             formatCommodity(
                 data.price
             );
 
-    } else if (
-        options.yield
-    ) {
+    } else if (options.yield) {
 
         priceText =
             formatYield(
@@ -2430,9 +2723,7 @@ function updateMarketCard(
 
     let changeText;
 
-    if (
-        options.yield
-    ) {
+    if (options.yield) {
 
         changeText =
             `${direction}${data.change.toFixed(2)} pts (${direction}${data.changePct.toFixed(2)}%)`;
@@ -2456,52 +2747,23 @@ function updateMarketCard(
                     : ""
         );
 
-    let status =
-        "CLOSED";
-
-    if (
-        [
-            "^GSPC",
-            "^IXIC",
-            "^VIX",
-            "^TNX"
-        ].includes(
+    const status =
+        getMarketStatus(
             options.symbol
-        )
-    ) {
-
-        status =
-            getUSStockStatus();
-
-    } else if (
-        [
-            "CL=F",
-            "ES=F"
-        ].includes(
-            options.symbol
-        )
-    ) {
-
-        status =
-            getFuturesStatus();
-
-    } else if (
-        options.symbol === "^N225"
-    ) {
-
-        status =
-            getNikkeiStatus();
-
-    } else if (
-        options.symbol === "^FTSE"
-    ) {
-
-        status =
-            getFTSEStatus();
-    }
+        );
 
     statusEl.textContent =
         `● ${status}`;
+
+    if (updatedEl) {
+
+        const timestamp =
+            data.marketTimestamp ||
+            data.pulledAt;
+
+        updatedEl.textContent =
+            `Updated ${formatMarketTimestamp(timestamp)}`;
+    }
 }
 
 
@@ -2512,9 +2774,19 @@ function updateSP500High(data) {
             "sp500-high"
         );
 
+    const lowEl =
+        document.getElementById(
+            "sp500-low"
+        );
+
     const overviewEl =
         document.getElementById(
             "overview-sp500-high"
+        );
+
+    const overviewLowEl =
+        document.getElementById(
+            "overview-sp500-low"
         );
 
     if (
@@ -2559,6 +2831,38 @@ function updateSP500High(data) {
 
             overviewEl.className =
                 "overview-market-high";
+        }
+    }
+
+    if (
+        data &&
+        typeof data.fiftyTwoWeekLow ===
+            "number"
+    ) {
+
+        const lowText =
+            `52W Low ${formatNumber(data.fiftyTwoWeekLow)}`;
+
+        if (lowEl) {
+            lowEl.textContent =
+                lowText;
+        }
+
+        if (overviewLowEl) {
+            overviewLowEl.textContent =
+                lowText;
+        }
+
+    } else {
+
+        if (lowEl) {
+            lowEl.textContent =
+                "52W Low --";
+        }
+
+        if (overviewLowEl) {
+            overviewLowEl.textContent =
+                "52W Low --";
         }
     }
 }
@@ -2913,6 +3217,10 @@ async function updateMarkets() {
         ]);
 
 
+    sp500LatestQuote =
+        sp500;
+
+
     /* Full view */
 
     updateMarketCard(
@@ -3051,6 +3359,15 @@ async function updateMarkets() {
 
 let sp500ChartCache =
     null;
+
+let sp500LatestQuote =
+    null;
+
+let sp500DailyCache =
+    null;
+
+let sp500DailyCacheTime =
+    0;
 
 
 async function getSP500ChartData() {
@@ -4102,6 +4419,320 @@ function formatChartTime(date) {
 }
 
 
+function setSP500Return(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (!element) {
+        return;
+    }
+
+    if (
+        typeof value !== "number" ||
+        !Number.isFinite(value)
+    ) {
+        element.textContent = "--";
+        element.className =
+            "sp500-return-value";
+        return;
+    }
+
+    element.textContent =
+        `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+
+    element.className =
+        "sp500-return-value " +
+        (
+            value > 0
+                ? "positive"
+                : value < 0
+                    ? "negative"
+                    : ""
+        );
+}
+
+
+function findCloseOnOrBefore(candles, targetDate) {
+
+    let candidate = null;
+
+    for (
+        const candle of candles
+    ) {
+        if (
+            candle.time <= targetDate
+        ) {
+            candidate = candle;
+        } else {
+            break;
+        }
+    }
+
+    return candidate;
+}
+
+
+async function getSP500DailyData() {
+
+    const now = Date.now();
+
+    if (
+        sp500DailyCache &&
+        now - sp500DailyCacheTime <
+            60 * 1000
+    ) {
+        return sp500DailyCache;
+    }
+
+    const yahooUrl =
+        "https://query1.finance.yahoo.com/v8/finance/chart/^GSPC?interval=1d&range=2y";
+
+    const proxy =
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`;
+
+    try {
+
+        const response =
+            await fetch(
+                proxy,
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "S&P return request failed"
+            );
+        }
+
+        const data =
+            await response.json();
+
+        const result =
+            data?.chart?.result?.[0];
+
+        const timestamps =
+            result?.timestamp || [];
+
+        const closes =
+            result?.indicators?.quote?.[0]?.close || [];
+
+        const candles = [];
+
+        for (
+            let i = 0;
+            i < timestamps.length;
+            i++
+        ) {
+
+            const close =
+                closes[i];
+
+            if (
+                typeof close === "number" &&
+                Number.isFinite(close)
+            ) {
+
+                candles.push({
+                    time:
+                        new Date(
+                            timestamps[i] * 1000
+                        ),
+                    close
+                });
+            }
+        }
+
+        if (!candles.length) {
+            throw new Error(
+                "No S&P daily data"
+            );
+        }
+
+        sp500DailyCache =
+            candles;
+
+        sp500DailyCacheTime =
+            now;
+
+        return candles;
+
+    } catch (error) {
+
+        console.error(
+            "S&P return data error:",
+            error
+        );
+
+        return sp500DailyCache ||
+            null;
+    }
+}
+
+
+async function updateSP500PeriodReturns() {
+
+    let quote =
+        sp500LatestQuote;
+
+    if (!quote) {
+        quote =
+            await getYahooQuote("^GSPC");
+        sp500LatestQuote =
+            quote;
+    }
+
+    if (!quote) {
+        return;
+    }
+
+    const candles =
+        await getSP500DailyData();
+
+    if (
+        !candles ||
+        !candles.length
+    ) {
+        return;
+    }
+
+    const latestClose =
+        quote.price;
+
+    const latestDate =
+        candles[candles.length - 1].time;
+
+    function calculateReturn(date) {
+
+        const base =
+            findCloseOnOrBefore(
+                candles,
+                date
+            );
+
+        if (
+            !base ||
+            !base.close
+        ) {
+            return null;
+        }
+
+        return (
+            (latestClose - base.close) /
+            base.close
+        ) * 100;
+    }
+
+    /* 1D uses the previous trading day's close. */
+
+    const previousDay =
+        candles.length >= 2
+            ? candles[candles.length - 2]
+            : null;
+
+    const oneDay =
+        previousDay &&
+        previousDay.close
+            ? (
+                (latestClose - previousDay.close) /
+                previousDay.close
+            ) * 100
+            : quote.changePct;
+
+    const fiveDayBase =
+        candles.length >= 6
+            ? candles[candles.length - 6]
+            : null;
+
+    const fiveDay =
+        fiveDayBase
+            ? (
+                (latestClose - fiveDayBase.close) /
+                fiveDayBase.close
+            ) * 100
+            : null;
+
+    const oneMonth =
+        calculateReturn(
+            new Date(
+                latestDate.getTime()
+                - 30 * 24 * 60 * 60 * 1000
+            )
+        );
+
+    const threeMonth =
+        calculateReturn(
+            new Date(
+                latestDate.getTime()
+                - 90 * 24 * 60 * 60 * 1000
+            )
+        );
+
+    const sixMonth =
+        calculateReturn(
+            new Date(
+                latestDate.getTime()
+                - 182 * 24 * 60 * 60 * 1000
+            )
+        );
+
+    const ytd =
+        calculateReturn(
+            new Date(
+                latestDate.getFullYear(),
+                0,
+                1
+            )
+        );
+
+    const oneYear =
+        calculateReturn(
+            new Date(
+                latestDate.getFullYear() - 1,
+                latestDate.getMonth(),
+                latestDate.getDate()
+            )
+        );
+
+    setSP500Return(
+        "sp500-return-1d",
+        oneDay
+    );
+
+    setSP500Return(
+        "sp500-return-5d",
+        fiveDay
+    );
+
+    setSP500Return(
+        "sp500-return-1m",
+        oneMonth
+    );
+
+    setSP500Return(
+        "sp500-return-3m",
+        threeMonth
+    );
+
+    setSP500Return(
+        "sp500-return-6m",
+        sixMonth
+    );
+
+    setSP500Return(
+        "sp500-return-ytd",
+        ytd
+    );
+
+    setSP500Return(
+        "sp500-return-1y",
+        oneYear
+    );
+}
+
+
 async function updateSP500Chart() {
 
     const candles =
@@ -4169,6 +4800,8 @@ async function updateSP500Chart() {
     drawSP500Chart(
         candles
     );
+
+    updateSP500PeriodReturns();
 
 
     if (
