@@ -111,6 +111,12 @@ h2 {
     gap: 10px;
 }
 
+.main-market-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
 .market-card {
     min-height: 128px;
 }
@@ -496,7 +502,7 @@ h2 {
 
 .overview-market-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
 }
 
@@ -829,8 +835,12 @@ body.overview-mode .page-header {
         grid-template-columns: 1fr;
     }
 
+    .main-market-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .macro-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .chart-wrap {
@@ -980,6 +990,28 @@ body.overview-mode .page-header {
                         </div>
 
                     </div>
+
+	    	  <div class="overview-market-item">
+
+    		    <div class="overview-market-name">
+        	        Russell 2000
+	          </div>
+
+   		 <div
+        		class="overview-market-value"
+		        id="overview-russell-price"
+		    >
+		        --
+		    </div>
+
+		    <div
+	        class="overview-market-change"
+	        id="overview-russell-change"
+	    >
+	        --
+	    </div>
+
+		</div>
 
 
                     <div class="overview-market-item">
@@ -1298,7 +1330,7 @@ body.overview-mode .page-header {
 
             <h2>MARKET</h2>
 
-            <div class="market-grid">
+            <div class="main-market-grid">
 
                 <div class="card market-card">
 
@@ -3358,6 +3390,11 @@ async function updateMarkets() {
     updateOverviewMarketItem(
         "nasdaq",
         nasdaq
+    );
+
+    updateOverviewMarketItem(
+        "russell",
+        russell
     );
 
     updateOverviewMarketItem(
