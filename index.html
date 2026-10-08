@@ -101,6 +101,12 @@ h2 {
 
 .market-grid {
     display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.global-grid {
+    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
 }
@@ -123,7 +129,7 @@ h2 {
 }
 
 .market-change {
-    font-size: 13px;
+    font-size: 25px;
     font-weight: 600;
 }
 
@@ -408,7 +414,7 @@ h2 {
 }
 
 .forecast-period {
-    font-size: 11px;
+    font-size: 19px;
     color: #aeb4bd;
     min-height: 0;
     display: block;
@@ -421,7 +427,7 @@ h2 {
 }
 
 .forecast-rain {
-    font-size: 10px;
+    font-size: 16px;
     color: #8fa7bd;
     white-space: nowrap;
 }
@@ -1381,6 +1387,43 @@ body.overview-mode .page-header {
 
                 </div>
 
+		 <div class="card market-card">
+
+                    <div class="market-name">
+                        Russell 2000
+                    </div>
+
+                    <div
+                        class="market-price"
+                        id="russell-price"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-change"
+                        id="russell-change"
+                    >
+                        --
+                    </div>
+
+                    <div
+                        class="market-status"
+                        id="russell-status"
+                    >
+                        ● --
+                    </div>
+
+                    <div
+                        class="market-updated"
+                        id="russell-updated"
+                    >
+                        Updated --
+                    </div>
+
+                </div>
+
+
 
                 <div class="card market-card">
 
@@ -1615,7 +1658,7 @@ body.overview-mode .page-header {
 
             <h2>GLOBAL + FUTURES</h2>
 
-            <div class="market-grid">
+            <div class="global-grid">
 
                 <div class="card market-card">
 
@@ -2354,7 +2397,7 @@ function getUSStockStatus() {
    Cboe calculates the VIX index during:
    - 3:15 AM–9:25 AM ET (Global Trading Hours)
    - 9:30 AM–4:15 PM ET (Regular Trading Hours)
-   The 4:15–5:00 PM ET period is treated as EXTENDED/curb.
+   The 4:15–5:00 PM ET period is still treated as OPEN.
 */
 function getVIXStatus() {
 
@@ -2394,7 +2437,7 @@ function getVIXStatus() {
         minutes >= gthStart &&
         minutes < gthEnd
     ) {
-        return "EXTENDED";
+        return "OPEN";
     }
 
     if (
@@ -2408,7 +2451,7 @@ function getVIXStatus() {
         minutes >= rthEnd &&
         minutes < curbEnd
     ) {
-        return "EXTENDED";
+        return "OPEN";
     }
 
     return "CLOSED";
@@ -2417,9 +2460,8 @@ function getVIXStatus() {
 
 /*
    U.S. Treasury yield data can update outside the cash equity session.
-   Treat the displayed 10-Year quote as EXTENDED outside the regular
-   U.S. cash session on weekdays, rather than incorrectly calling it
-   CLOSED while the quote is still changing.
+   Treat the displayed 10-Year quote as OPEN only during its
+   displayed 8:00 AM–5:00 PM ET window on weekdays.
 */
 function getTreasuryStatus() {
 
@@ -2451,7 +2493,7 @@ function getTreasuryStatus() {
         minutes < close
     )
         ? "OPEN"
-        : "EXTENDED";
+        : "CLOSED";
 }
 
 
@@ -2459,8 +2501,8 @@ function getTreasuryStatus() {
    CME equity-index futures:
    Regular session runs Sunday–Friday with a daily
    5:00–6:00 PM ET maintenance break.
-   We use EXTENDED for the overnight/Globex portion and
-   CLOSED during the maintenance/weekend period.
+   Use OPEN whenever the futures market is trading and CLOSED during
+   the daily maintenance break and weekend closure.
 */
 function getFuturesStatus() {
 
@@ -2479,13 +2521,13 @@ function getFuturesStatus() {
 
     if (parts.weekday === "Sun") {
         return minutes >= 18 * 60
-            ? "EXTENDED"
+            ? "OPEN"
             : "CLOSED";
     }
 
     if (parts.weekday === "Fri") {
         return minutes < 17 * 60
-            ? "EXTENDED"
+            ? "OPEN"
             : "CLOSED";
     }
 
@@ -2496,7 +2538,7 @@ function getFuturesStatus() {
         return "CLOSED";
     }
 
-    return "EXTENDED";
+    return "OPEN";
 }
 
 
@@ -2615,7 +2657,8 @@ function getMarketStatus(symbol) {
     if (
         [
             "^GSPC",
-            "^IXIC"
+            "^IXIC",
+	    "^RUT" 	
         ].includes(symbol)
     ) {
         return getUSStockStatus();
@@ -3197,6 +3240,7 @@ async function updateMarkets() {
     const [
         sp500,
         nasdaq,
+	russell,
         vix,
         tnx,
         wti,
@@ -3208,6 +3252,7 @@ async function updateMarkets() {
 
             getYahooQuote("^GSPC"),
             getYahooQuote("^IXIC"),
+	    getYahooQuote("^RUT"),
             getYahooQuote("^VIX"),
             getYahooQuote("^TNX"),
             getYahooQuote("CL=F"),
@@ -3241,6 +3286,14 @@ async function updateMarkets() {
         nasdaq,
         {
             symbol: "^IXIC"
+        }
+    );
+
+    updateMarketCard(
+        "russell",
+        russell,
+        {
+            symbol: "^RUT"
         }
     );
 
@@ -3708,7 +3761,7 @@ function drawSP500Chart(candles) {
     }
 
     const slotWidth = chartWidth / 78;
-    const bodyWidth = Math.max(2, Math.min(7, slotWidth * 0.62));
+    const bodyWidth = Math.max(3, Math.min(10, slotWidth * 1.05));
 
     visible.forEach(candle => {
         const x = timeToX(candle.time.getTime());
@@ -3861,7 +3914,7 @@ function drawOverviewSP500Chart(candles) {
     });
 
     const slotWidth = chartWidth / 78;
-    const bodyWidth = Math.max(1.5, Math.min(5, slotWidth * 0.62));
+    const bodyWidth = Math.max(2, Math.min(8, slotWidth * 1.05));
 
     visible.forEach(candle => {
         const x = timeToX(candle.time.getTime());
