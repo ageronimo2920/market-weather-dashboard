@@ -84,6 +84,26 @@ h2 {
     letter-spacing: 1.2px;
 }
 
+
+.market-pulse-dot {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 12px;
+    letter-spacing: 0;
+    vertical-align: 2px;
+}
+
+
+.market-pulse-joke {
+    display: inline-block;
+    margin-left: 8px;
+    color: #777f89;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+    vertical-align: 2px;
+}
+
 .section {
     margin-bottom: 22px;
 }
@@ -289,7 +309,7 @@ h2 {
 }
 
 .sp500-return-value {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -1303,7 +1323,19 @@ body.overview-mode .page-header {
 
         <div class="section">
 
-            <h2>MARKET</h2>
+            
+	<h2>
+            MARKET
+            <span
+                id="market-pulse-dot"
+                class="market-pulse-dot"
+                aria-label="Market Pulse status"
+            >⚪</span>
+            <span
+                id="market-pulse-joke"
+                class="market-pulse-joke"
+            ></span>
+        </h2>
 
             <div class="main-market-grid">
 
@@ -3054,6 +3086,29 @@ function updateOverviewSecondary(
    MARKET PULSE
    ========================================================= */
 
+const marketPulseJokes = [
+    "Can I offer you an egg in this trying time?",
+    "Pepe Silvia!",
+    "There's always money in the banana stand.",
+    "Ew, David!",
+    "I want to go to there.",
+    "The math ain't mathing.",
+    "When was the last time you drank straight mixer?",
+    "What is the point of you?",
+    "Little green ghouls, buddy!",
+    "Let him cook."
+];
+
+const marketPulseJoke = document.getElementById("market-pulse-joke");
+
+if (marketPulseJoke) {
+    marketPulseJoke.textContent =
+        marketPulseJokes[
+            Math.floor(Math.random() * marketPulseJokes.length)
+        ];
+}
+
+
 function updateMarketPulse(
     sp500,
     nasdaq,
@@ -3180,6 +3235,7 @@ function updateMarketPulse(
         `${stockText} · ${yieldText} · ${oilText} · ${volatilityText}`;
 
 
+
     document.getElementById(
         "pulse-icon"
     ).textContent =
@@ -3207,11 +3263,30 @@ function updateMarketPulse(
             }
         )}`;
 
-
     document.getElementById(
         "overview-pulse-icon"
     ).textContent =
         icon;
+
+    const marketPulseDot = document.getElementById(
+        "market-pulse-dot"
+    );
+
+    if (marketPulseDot) {
+        marketPulseDot.textContent = icon;
+        marketPulseDot.setAttribute(
+            "title",
+            label
+        );
+    }
+
+    const marketPulseJoke = document.getElementById(
+        "market-pulse-joke"
+    );
+
+    if (marketPulseJoke) {
+        marketPulseJoke.textContent = "";
+    }
 
     document.getElementById(
         "overview-pulse-label"
