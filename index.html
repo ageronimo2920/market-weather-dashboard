@@ -375,28 +375,7 @@ h2 {
     color: #dfe2e6;
 }
 
-.radar-quiet {
-    color: #59c98b;
-}
 
-.radar-nearby {
-    color: #e5c76b;
-}
-
-.radar-now {
-    color: #ef7373;
-}
-
-.radar-unavailable {
-    color: #9299a4;
-}
-
-.radar-source {
-    display: block;
-    margin-top: 3px;
-    font-size: 9px;
-    color: #6f7781;
-}
 
 /* =========================================================
    FORECAST
@@ -525,7 +504,7 @@ h2 {
 }
 
 .overview-market-change {
-    font-size: 11px;
+    font-size: 17px;
     margin-top: 2px;
     white-space: nowrap;
 }
@@ -1261,9 +1240,7 @@ body.overview-mode .page-header {
                         Visibility --
                     </span>
 
-                    <span id="overview-weather-radar">
-                        Radar --
-                    </span>
+                
 
                 </div>
 
@@ -1300,9 +1277,7 @@ body.overview-mode .page-header {
 
             <div class="overview-footer">
 
-                <span>
-                    Radar data by RainViewer
-                </span>
+               
 
                 <span>
                     Updated
@@ -1962,20 +1937,7 @@ body.overview-mode .page-header {
 
                         <div class="weather-detail weather-detail-wide">
 
-                            <div class="weather-label">
-                                Radar
-                            </div>
-
-                            <div
-                                class="weather-value"
-                                id="weather-radar"
-                            >
-                                Checking radar...
-                            </div>
-
-                            <span class="radar-source">
-                                Weather data by RainViewer
-                            </span>
+                           
 
                         </div>
 
@@ -4904,346 +4866,6 @@ async function updateKTYS() {
 
 
 /* =========================================================
-   RADAR STATUS
-   ========================================================= */
-
-const KNOXVILLE_RADAR_LAT =
-    35.9606;
-
-const KNOXVILLE_RADAR_LON =
-    -83.9207;
-
-let radarFramePath =
-    null;
-
-
-async function getLatestRadarFrame() {
-
-    const response =
-        await fetch(
-            "https://api.rainviewer.com/public/weather-maps.json",
-            {
-                cache:
-                    "no-store"
-            }
-        );
-
-    if (!response.ok) {
-
-        throw new Error(
-            "RainViewer API request failed"
-        );
-    }
-
-    const data =
-        await response.json();
-
-    const past =
-        data?.radar?.past ||
-        [];
-
-    if (
-        !past.length
-    ) {
-
-        throw new Error(
-            "No RainViewer radar frames available"
-        );
-    }
-
-    const latest =
-        past[
-            past.length - 1
-        ];
-
-    radarFramePath =
-        `${data.host}${latest.path}`;
-
-    return radarFramePath;
-}
-
-
-function loadRadarImage(url) {
-
-    return new Promise(
-        (
-            resolve,
-            reject
-        ) => {
-
-            const image =
-                new Image();
-
-            image.crossOrigin =
-                "anonymous";
-
-            image.onload =
-                () =>
-                    resolve(image);
-
-            image.onerror =
-                () =>
-                    reject(
-                        new Error(
-                            "Radar image could not be loaded"
-                        )
-                    );
-
-            image.src =
-                `${url}/512/7/${KNOXVILLE_RADAR_LAT}/${KNOXVILLE_RADAR_LON}/2/1_0.png?ts=${Date.now()}`;
-        }
-    );
-}
-
-
-function analyzeRadarImage(image) {
-
-    const canvas =
-        document.createElement(
-            "canvas"
-        );
-
-    const size =
-        512;
-
-    canvas.width =
-        size;
-
-    canvas.height =
-        size;
-
-    const ctx =
-        canvas.getContext(
-            "2d",
-            {
-                willReadFrequently:
-                    true
-            }
-        );
-
-    ctx.drawImage(
-        image,
-        0,
-        0,
-        size,
-        size
-    );
-
-    const pixels =
-        ctx.getImageData(
-            0,
-            0,
-            size,
-            size
-        ).data;
-
-    const center =
-        size / 2;
-
-    let nearbyCount =
-        0;
-
-    let coreCount =
-        0;
-
-    for (
-        let y = 0;
-        y < size;
-        y++
-    ) {
-
-        for (
-            let x = 0;
-            x < size;
-            x++
-        ) {
-
-            const dx =
-                x - center;
-
-            const dy =
-                y - center;
-
-            const distance =
-                Math.sqrt(
-                    dx * dx +
-                    dy * dy
-                );
-
-            if (
-                distance > 85
-            ) {
-
-                continue;
-            }
-
-            const index =
-                (
-                    y * size +
-                    x
-                ) * 4;
-
-            const r =
-                pixels[index];
-
-            const g =
-                pixels[index + 1];
-
-            const b =
-                pixels[index + 2];
-
-            const a =
-                pixels[index + 3];
-
-            const radarEcho =
-                a > 35 &&
-                (
-                    Math.max(
-                        r,
-                        g,
-                        b
-                    ) -
-                    Math.min(
-                        r,
-                        g,
-                        b
-                    )
-                ) > 25;
-
-            if (
-                !radarEcho
-            ) {
-
-                continue;
-            }
-
-            nearbyCount++;
-
-            if (
-                distance <= 25
-            ) {
-
-                coreCount++;
-            }
-        }
-    }
-
-
-    if (
-        coreCount >= 4
-    ) {
-
-        return {
-
-            status:
-                "🔴 Precipitation over Knoxville",
-
-            className:
-                "radar-now"
-
-        };
-
-    }
-
-
-    if (
-        nearbyCount >= 10
-    ) {
-
-        return {
-
-            status:
-                "🟡 Precip nearby",
-
-            className:
-                "radar-nearby"
-
-        };
-
-    }
-
-
-    return {
-
-        status:
-            "🟢 Quiet · No precipitation nearby",
-
-        className:
-            "radar-quiet"
-
-    };
-}
-
-
-async function updateRadarStatus() {
-
-    const element =
-        document.getElementById(
-            "weather-radar"
-        );
-
-    try {
-
-        const radarUrl =
-            await getLatestRadarFrame();
-
-        const image =
-            await loadRadarImage(
-                radarUrl
-            );
-
-        const result =
-            analyzeRadarImage(
-                image
-            );
-
-        element.textContent =
-            result.status;
-
-        element.className =
-            `weather-value ${result.className}`;
-
-
-        const overviewRadar =
-            document.getElementById(
-                "overview-weather-radar"
-            );
-
-        overviewRadar.textContent =
-            `Radar ${result.status}`;
-
-        overviewRadar.className =
-            result.className;
-
-    } catch (error) {
-
-        console.error(
-            "Radar status error:",
-            error
-        );
-
-        element.textContent =
-            "⚪ Radar unavailable";
-
-        element.className =
-            "weather-value radar-unavailable";
-
-
-        const overviewRadar =
-            document.getElementById(
-                "overview-weather-radar"
-            );
-
-        overviewRadar.textContent =
-            "Radar unavailable";
-
-        overviewRadar.className =
-            "radar-unavailable";
-    }
-}
-
-
-/* =========================================================
    NWS FORECAST
    ========================================================= */
 
@@ -5797,8 +5419,6 @@ updateSP500Chart();
 
 updateKTYS();
 
-updateRadarStatus();
-
 updateForecast();
 
 updateAFD();
@@ -5825,10 +5445,6 @@ setInterval(
     5 * 60 * 1000
 );
 
-setInterval(
-    updateRadarStatus,
-    5 * 60 * 1000
-);
 
 setInterval(
     updateForecast,
