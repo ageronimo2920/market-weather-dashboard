@@ -3422,6 +3422,7 @@ let sp500DailyCache =
 let sp500DailyCacheTime =
     0;
 
+let sp500PreviousClose = null;
 
 async function getSP500ChartData() {
 
@@ -3679,6 +3680,12 @@ function drawSP500Chart(candles) {
 
     let minPrice = Math.min(...lows);
     let maxPrice = Math.max(...highs);
+
+    if (sp500PreviousClose !== null) {
+        minPrice = Math.min(minPrice, sp500PreviousClose);
+        maxPrice = Math.max(maxPrice, sp500PreviousClose);
+    }
+
     const range = maxPrice - minPrice;
     const pricePadding = range > 0 ? range * 0.08 : 5;
 
@@ -3757,6 +3764,20 @@ function drawSP500Chart(candles) {
 
         ctx.fillStyle = "#8b939d";
         ctx.fillText("52W", padding.left + 4, highY - 4);
+    }
+
+    if (sp500PreviousClose !== null) {
+        const previousCloseY = priceToY(sp500PreviousClose);
+
+        ctx.save();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = "#ef7373";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, previousCloseY);
+        ctx.lineTo(width - padding.right, previousCloseY);
+        ctx.stroke();
+        ctx.restore();
     }
 
     const slotWidth = chartWidth / 78;
@@ -3861,6 +3882,12 @@ function drawOverviewSP500Chart(candles) {
 
     let minPrice = Math.min(...lows);
     let maxPrice = Math.max(...highs);
+
+    if (sp500PreviousClose !== null) {
+        minPrice = Math.min(minPrice, sp500PreviousClose);
+        maxPrice = Math.max(maxPrice, sp500PreviousClose);
+    }
+
     const range = maxPrice - minPrice;
     const pricePadding = range > 0 ? range * 0.10 : 5;
 
@@ -3911,6 +3938,20 @@ function drawOverviewSP500Chart(candles) {
         );
         ctx.fillText(label, labelX, height - 3);
     });
+
+    if (sp500PreviousClose !== null) {
+        const previousCloseY = priceToY(sp500PreviousClose);
+
+        ctx.save();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = "#ef7373";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, previousCloseY);
+        ctx.lineTo(width - padding.right, previousCloseY);
+        ctx.stroke();
+        ctx.restore();
+    }
 
     const slotWidth = chartWidth / 78;
     const bodyWidth = Math.max(2, Math.min(8, slotWidth * 1.05));
@@ -4318,6 +4359,42 @@ async function updateSP500Chart() {
 
         return;
     }
+
+    getSP500DailyData().then(dailyCandles => {
+        if (!dailyCandles || !dailyCandles.length) return;
+
+        const todayKey = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/New_York",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(new Date());
+
+        let previousSession = null;
+
+        for (const candle of dailyCandles) {
+            const candleKey = new Intl.DateTimeFormat("en-CA", {
+                timeZone: "America/New_York",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+            }).format(candle.time);
+
+            if (candleKey < todayKey) {
+                previousSession = candle;
+            }
+        }
+
+        if (!previousSession) return;
+
+        sp500PreviousClose = previousSession.close;
+
+        drawSP500Chart(candles);
+
+        if (document.body.classList.contains("overview-mode")) {
+            drawOverviewSP500Chart(candles);
+        }
+    });
 
     const latest =
         candles[
