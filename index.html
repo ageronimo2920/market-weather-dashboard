@@ -965,6 +965,13 @@ body.overview-mode .page-header {
                             52W Low --
                         </div>
 
+		         <div
+                            class="overview-market-high"
+                            id="overview-sp500-dist"
+                        >
+                            52W Dist. --
+                        </div>
+
                     </div>
 
 
@@ -1373,6 +1380,13 @@ body.overview-mode .page-header {
                         52W Low --
                     </div>
 
+		    <div
+                        class="high52"
+                        id="sp500-dist"
+                    >
+                        52W Dist. --
+                    </div>
+
                     <div
                         class="market-status"
                         id="sp500-status"
@@ -1602,6 +1616,20 @@ body.overview-mode .page-header {
 
         </div>
 
+	
+	
+	<!-- SECTOR HEATMAP -->
+	<div class="dashboard-section">
+	    <div class="section-title">SECTOR HEATMAP</div>
+
+	    <iframe
+        	src="https://finviz.com/widgets/map?t=sec&st=d1"
+	        width="100%"
+        	height="450"
+	        frameborder="0"
+	        loading="lazy">
+	    </iframe>
+	</div>
 
 
 
@@ -2880,6 +2908,12 @@ function updateSP500High(data) {
             "overview-sp500-low"
         );
 
+    const distEl =
+        document.getElementById("sp500-dist");
+
+    const overviewDistEl =
+        document.getElementById("overview-sp500-dist");
+
     if (
         data &&
         typeof data.fiftyTwoWeekHigh ===
@@ -2954,6 +2988,40 @@ function updateSP500High(data) {
         if (overviewLowEl) {
             overviewLowEl.textContent =
                 "52W Low --";
+        }
+    }
+    if (
+        data &&
+        typeof data.price === "number" &&
+        typeof data.fiftyTwoWeekHigh === "number" &&
+        data.fiftyTwoWeekHigh > 0
+    ) {
+
+        const distance =
+            (
+                (data.fiftyTwoWeekHigh - data.price) /
+                data.fiftyTwoWeekHigh
+            ) * 100;
+
+        const distText =
+            `52W Dist. ${distance.toFixed(2)}%`;
+
+        if (distEl) {
+            distEl.textContent = distText;
+        }
+
+        if (overviewDistEl) {
+            overviewDistEl.textContent = distText;
+        }
+
+    } else {
+
+        if (distEl) {
+            distEl.textContent = "52W Dist. --";
+        }
+
+        if (overviewDistEl) {
+            overviewDistEl.textContent = "52W Dist. --";
         }
     }
 }
@@ -5472,10 +5540,6 @@ async function updateAFD() {
             productData.productText ||
             "";
 
-	console.log("AFD text:", text);
-	console.log("AFD headings:", text.match(/\.[A-Z][A-Z /()-]*\.{3,}/g));
-	
-        
         
         // Extract the full NWS discussion section
         const discussionMatch =
@@ -5483,9 +5547,19 @@ async function updateAFD() {
                 /\.DISCUSSION\.\.\.([\s\S]*?)(?=\n\.AVIATION\.\.\.|$)/
             );
 
+        
         const discussion =
             discussionMatch
-                ? discussionMatch[1].trim()
+                ? discussionMatch[1]
+                    .trim()
+                    .split(/\n\s*\n/)
+                    .map(paragraph =>
+                        paragraph
+                            .replace(/\s*\n\s*/g, " ")
+                            .replace(/\s{2,}/g, " ")
+                            .trim()
+                    )
+                    .join("\n\n")
                 : "Full forecast discussion unavailable.";
 
         document.getElementById(
