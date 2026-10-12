@@ -2008,41 +2008,62 @@ body.overview-mode .page-header {
         </div>
 
 
-        <!-- AFD -->
+     
+    <!-- AFD -->
 
-        <div class="section">
+    <div class="section">
 
-            <h2>
-                NWS FORECAST DISCUSSION
-            </h2>
+        <h2>
+            NWS FORECAST DISCUSSION
+        </h2>
 
-            <div class="afd-card">
+        <!-- KEY MESSAGES -->
 
-                <div class="afd-title">
-                    KEY MESSAGES
-                </div>
+        <div class="afd-card">
 
-                <div
-                    class="afd-content"
-                    id="afd-content"
-                >
-                    Loading...
-                </div>
+            <div class="afd-title">
+                KEY MESSAGES
+            </div>
 
+            <div
+                class="afd-content"
+                id="afd-content"
+            >
+                Loading...
             </div>
 
         </div>
 
+        <!-- FULL FORECAST DISCUSSION -->
 
-        <div class="updated">
+        <div class="afd-card" style="margin-top: 10px;">
 
-            Page updated
+            <div class="afd-title">
+                FULL FORECAST DISCUSSION
+            </div>
 
-            <span id="page-updated">
-                --
-            </span>
+            <div
+                class="afd-content"
+                id="afd-discussion"
+            >
+                Loading...
+            </div>
 
         </div>
+
+    </div>
+
+
+    <div class="updated">
+
+        Page updated
+
+        <span id="page-updated">
+            --
+        </span>
+
+    </div>
+
 
     </div>
 
@@ -5451,6 +5472,27 @@ async function updateAFD() {
             productData.productText ||
             "";
 
+	console.log("AFD text:", text);
+	console.log("AFD headings:", text.match(/\.[A-Z][A-Z /()-]*\.{3,}/g));
+	
+        
+        
+        // Extract the full NWS discussion section
+        const discussionMatch =
+            text.match(
+                /\.DISCUSSION\.\.\.([\s\S]*?)(?=\n\.AVIATION\.\.\.|$)/
+            );
+
+        const discussion =
+            discussionMatch
+                ? discussionMatch[1].trim()
+                : "Full forecast discussion unavailable.";
+
+        document.getElementById(
+            "afd-discussion"
+        ).textContent = discussion;
+
+
         const match =
             text.match(
                 /\.KEY MESSAGES\.\.\.(.*?)(?=\n\.[A-Z][A-Z ]+\.\.\.|$)/s
@@ -5506,6 +5548,7 @@ async function updateAFD() {
             "No key messages available.";
 
     } catch (error) {
+   
 
         console.error(
             "AFD error:",
@@ -5518,11 +5561,17 @@ async function updateAFD() {
             "Forecast discussion unavailable.";
 
         document.getElementById(
+            "afd-discussion"
+        ).textContent =
+            "Forecast discussion unavailable.";
+
+        document.getElementById(
             "overview-afd"
         ).textContent =
             "Forecast discussion unavailable.";
     }
 }
+
 
 
 /* =========================================================
