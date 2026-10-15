@@ -879,6 +879,106 @@ body.overview-mode .page-header {
         grid-template-columns: 1fr 1fr;
     }
 }
+
+
+/* S&P 500 BREADTH */
+
+
+.breadth-section {
+    margin-top: 12px;
+    background: #181b21;
+    border: 1px solid #272c34;
+    border-radius: 10px;
+    padding: 13px 14px;
+}
+
+.breadth-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.breadth-metric {
+    min-width: 0;
+}
+
+.breadth-label {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-bottom: 6px;
+}
+
+.breadth-value {
+    font-size: 19px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    white-space: nowrap;
+}
+
+.breadth-bar {
+    display: flex;
+    width: 100%;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #343a40;
+    gap: 2px;
+}
+
+.breadth-adv-bar {
+    width: 0;
+    background: #299764;
+    transition: width 0.3s ease;
+}
+
+.breadth-decl-bar {
+    width: 0;
+    background: #d94b4b;
+    transition: width 0.3s ease;
+}
+
+.breadth-single-bar {
+    margin-top: 2px;
+}
+
+.breadth-ma-bar {
+    width: 0;
+    height: 100%;
+    background: #299764;
+    transition: width 0.3s ease;
+}
+
+.breadth-detail {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 6px;
+}
+
+.breadth-footer {
+    font-size: 10px;
+    opacity: 0.55;
+    margin-top: 12px;
+    text-align: right;
+}
+
+/* Allow a two-by-two layout when space is limited */
+@media (max-width: 700px) {
+    .breadth-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        row-gap: 18px;
+    }
+}
+
+
+.pullback-yellow {
+    color: #facc15;
+}
+
+.pullback-red {
+    color: #ef7373;
+}
+
+
 </style>
 </head>
 
@@ -1627,11 +1727,60 @@ body.overview-mode .page-header {
         </div>
 
 	
+
+<!-- S&P 500 BREADTH -->
+
+<div class="dashboard-section">
+    <h2>S&P 500 BREADTH</h2>
+    <div class="breadth-section">
+
+    <div class="breadth-grid">
+
+        
+<div class="breadth-metric">
+    <div class="breadth-label">Adv / Decl</div>
+    <div class="breadth-value" id="breadth-adv-detail">--% advancing</div>
+    <div class="breadth-bar">
+        <div class="breadth-adv-bar" id="breadth-adv-bar"></div>
+        <div class="breadth-decl-bar" id="breadth-decl-bar"></div>
+    </div>
+    <div class="breadth-detail" id="breadth-adv-decl">-- / --</div>
+</div>
+
+
+        <div class="breadth-metric">
+            <div class="breadth-label">52W High / Low</div>
+            <div class="breadth-value" id="breadth-high-low">-- / --</div>
+            <div class="breadth-detail">Within 1% of 52-week extremes</div>
+        </div>
+
+        <div class="breadth-metric">
+            <div class="breadth-label">Above 50-day MA</div>
+            <div class="breadth-value" id="breadth-50-value">--</div>
+            <div class="breadth-bar breadth-single-bar">
+                <div class="breadth-ma-bar" id="breadth-50-bar"></div>
+            </div>
+        </div>
+
+        <div class="breadth-metric">
+            <div class="breadth-label">Above 200-day MA</div>
+            <div class="breadth-value" id="breadth-200-value">--</div>
+            <div class="breadth-bar breadth-single-bar">
+                <div class="breadth-ma-bar" id="breadth-200-bar"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="breadth-footer" id="breadth-updated">
+        Breadth data loading...
+    </div>
+</div>
+</div>
+
 	
 	<!-- SECTOR HEATMAP -->
-	<div class="dashboard-section">
-	    <div class="section-title">SECTOR HEATMAP</div>
-
+	<div class="dashboard-section">	    
 	    <iframe
         	src="https://finviz.com/widgets/map?t=sec_all&st=d1"
 	        width="100%"
@@ -3147,16 +3296,24 @@ function updateSP500High(data) {
                 data.fiftyTwoWeekHigh
             ) * 100;
 
-        const distText =
-            `52W Dist. ${distance.toFixed(2)}%`;
+        
+const distText =
+    `52W Dist. ${distance.toFixed(2)}%`;
 
-        if (distEl) {
-            distEl.textContent = distText;
-        }
+if (distEl) {
+    distEl.textContent = distText;
+    distEl.classList.remove(
+        "pullback-yellow",
+        "pullback-red"
+    );
 
-        if (overviewDistEl) {
-            overviewDistEl.textContent = distText;
-        }
+    if (distance >= 10) {
+        distEl.classList.add("pullback-red");
+    } else if (distance >= 5) {
+        distEl.classList.add("pullback-yellow");
+    }
+}
+
 
     } else {
 
@@ -3203,15 +3360,34 @@ function update52WeekMetrics(data, prefix) {
             ((data.fiftyTwoWeekHigh - data.price) /
                 data.fiftyTwoWeekHigh) * 100;
 
-        if (distEl) {
-            distEl.textContent =
-                `52W Dist. ${distance.toFixed(2)}%`;
-        }
-    } else {
-        if (distEl) {
-            distEl.textContent = "52W Dist. --";
-        }
+        
+if (distEl) {
+    distEl.textContent =
+        `52W Dist. ${distance.toFixed(2)}%`;
+
+    distEl.classList.remove(
+        "pullback-yellow",
+        "pullback-red"
+    );
+
+    if (distance >= 10) {
+        distEl.classList.add("pullback-red");
+    } else if (distance >= 5) {
+        distEl.classList.add("pullback-yellow");
     }
+}
+
+    
+} else {
+    if (distEl) {
+        distEl.textContent = "52W Dist. --";
+        distEl.classList.remove(
+            "pullback-yellow",
+            "pullback-red"
+        );
+    }
+}
+
 }
 
 /* =========================================================
@@ -5884,6 +6060,107 @@ function updatePageClock() {
 
 
 /* =========================================================
+   S&P 500 BREADTH
+   ========================================================= */
+
+async function updateBreadth() {
+
+    try {
+
+        const response = await fetch(
+            "https://raw.githubusercontent.com/DeanFinancials/deanfi-data/main/advance-decline/daily_breadth.json",
+            { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+            throw new Error("Breadth data request failed");
+        }
+
+        const json = await response.json();
+        const data = json.data;
+
+        const advances =
+            data.advances_declines.advances;
+
+        const declines =
+            data.advances_declines.declines;
+
+        const total =
+            data.advances_declines.total_stocks ||
+            (advances + declines);
+
+        const high =
+            data.new_highs_lows.stocks_near_52w_high;
+
+        const low =
+            data.new_highs_lows.stocks_near_52w_low;
+
+        const above50 =
+            data.moving_averages.above_50_day_ma.percentage;
+
+        const above200 =
+            data.moving_averages.above_200_day_ma.percentage;
+
+        
+	document.getElementById("breadth-adv-detail")
+           .textContent =
+            `${Math.round(advances / total * 100)}% advancing`;
+
+	document.getElementById("breadth-adv-decl")
+	   .textContent =
+            `${advances} / ${declines}`;
+
+
+        document.getElementById("breadth-adv-bar")
+            .style.width =
+                `${advances / (advances + declines) * 100}%`;
+
+        document.getElementById("breadth-decl-bar")
+            .style.width =
+                `${declines / (advances + declines) * 100}%`;
+
+        document.getElementById("breadth-high-low")
+            .textContent =
+                `${high} / ${low}`;
+
+        document.getElementById("breadth-50-value")
+            .textContent =
+                `${above50.toFixed(1)}%`;
+
+        document.getElementById("breadth-50-bar")
+            .style.width =
+                `${above50}%`;
+
+        document.getElementById("breadth-200-value")
+            .textContent =
+                `${above200.toFixed(1)}%`;
+
+        document.getElementById("breadth-200-bar")
+            .style.width =
+                `${above200}%`;
+
+        const updated =
+            new Date(json.metadata.generated_at);
+
+        document.getElementById("breadth-updated")
+            .textContent =
+                `S&P 500 constituents · Data date: ${data.date} · Updated ${updated.toLocaleTimeString(
+                    "en-US",
+                    { hour: "numeric", minute: "2-digit" }
+                )}`;
+
+    } catch (error) {
+
+        console.error("Breadth data error:", error);
+
+        document.getElementById("breadth-updated")
+            .textContent =
+                "Breadth data temporarily unavailable";
+    }
+}
+
+
+/* =========================================================
    INITIAL LOAD
    ========================================================= */
 
@@ -5900,6 +6177,8 @@ updateAFD();
 updatePageClock();
 
 updateMarketCountdown();
+
+updateBreadth();
 
 
 /* =========================================================
@@ -5940,6 +6219,11 @@ setInterval(
 setInterval(
     updateMarketCountdown,
     1000
+);
+
+setInterval(
+    updateBreadth,
+    5 * 60 * 1000
 );
 
 /* =========================================================
