@@ -950,27 +950,7 @@ body.overview-mode .page-header {
                         >
                             --
                         </div>
-
-                        <div
-                            class="overview-market-high"
-                            id="overview-sp500-high"
-                        >
-                            52W High --
-                        </div>
-
-                        <div
-                            class="overview-market-high"
-                            id="overview-sp500-low"
-                        >
-                            52W Low --
-                        </div>
-
-		         <div
-                            class="overview-market-high"
-                            id="overview-sp500-dist"
-                        >
-                            52W Dist. --
-                        </div>
+                      
 
                     </div>
 
@@ -1119,12 +1099,12 @@ body.overview-mode .page-header {
                     <div class="overview-secondary-item">
 
                         <div class="overview-secondary-name">
-                            FTSE
+                            EURO STOXX 50
                         </div>
 
                         <div
                             class="overview-secondary-value"
-                            id="overview-ftse"
+                            id="overview-eurostoxx"
                         >
                             --
                         </div>
@@ -1339,6 +1319,10 @@ body.overview-mode .page-header {
                 aria-label="Market Pulse status"
             >⚪</span>
             <span
+		id="market-countdown"
+		class="market-countdown"
+	    ></span>
+	    <span
                 id="market-pulse-joke"
                 class="market-pulse-joke"
             ></span>
@@ -1373,13 +1357,7 @@ body.overview-mode .page-header {
                         52W High --
                     </div>
 
-                    <div
-                        class="high52"
-                        id="sp500-low"
-                    >
-                        52W Low --
-                    </div>
-
+                    
 		    <div
                         class="high52"
                         id="sp500-dist"
@@ -1424,6 +1402,22 @@ body.overview-mode .page-header {
                         --
                     </div>
 
+		    
+                    <div
+                        class="high52"
+                        id="nasdaq-high"
+                    >
+                        52W High --
+                    </div>
+
+                    <div
+                        class="high52"
+                        id="nasdaq-dist"
+                    >
+                        52W Dist. --
+                    </div>
+
+
                     <div
                         class="market-status"
                         id="nasdaq-status"
@@ -1459,6 +1453,22 @@ body.overview-mode .page-header {
                     >
                         --
                     </div>
+
+		    
+                    <div
+                        class="high52"
+                        id="russell-high"
+                    >
+                        52W High --
+                    </div>
+
+                    <div
+                        class="high52"
+                        id="russell-dist"
+                    >
+                        52W Dist. --
+                    </div>
+
 
                     <div
                         class="market-status"
@@ -1804,33 +1814,33 @@ body.overview-mode .page-header {
                 <div class="card market-card">
 
                     <div class="market-name">
-                        FTSE 100
+                        EURO STOXX 50
                     </div>
 
                     <div
                         class="market-price"
-                        id="ftse-price"
+                        id="eurostoxx-price"
                     >
                         --
                     </div>
 
                     <div
                         class="market-change"
-                        id="ftse-change"
+                        id="eurostoxx-change"
                     >
                         --
                     </div>
 
                     <div
                         class="market-status"
-                        id="ftse-status"
+                        id="eurostoxx-status"
                     >
                         ● --
                     </div>
 
                     <div
                         class="market-updated"
-                        id="ftse-updated"
+                        id="eurostoxx-updated"
                     >
                         Updated --
                     </div>
@@ -2415,6 +2425,140 @@ function isWeekday(parts) {
 
 
 /* =========================================================
+   MARKET COUNTDOWN
+   ========================================================= */
+
+function updateMarketCountdown() {
+
+    const el =
+        document.getElementById(
+            "market-countdown"
+        );
+
+    if (!el) return;
+
+    const parts =
+        getTimeParts(
+            "America/New_York"
+        );
+
+    const minutes =
+        parts.hour * 60 +
+        parts.minute;
+
+    const todayKey =
+        dateKey(parts);
+
+    const tradingDay =
+        isWeekday(parts) &&
+        !stockMarketHolidays2026.has(todayKey);
+
+    let target;
+    let label;
+
+    if (tradingDay && minutes < 570) {
+
+        target = new Date(
+            parts.year,
+            parts.month - 1,
+            parts.day,
+            9, 30, 0
+        );
+
+        label = "OPENS IN";
+
+    } else if (
+        tradingDay &&
+        minutes < 960
+    ) {
+
+        target = new Date(
+            parts.year,
+            parts.month - 1,
+            parts.day,
+            16, 0, 0
+        );
+
+        label = "CLOSES IN";
+
+    } else {
+
+        const nextDay = new Date(
+            parts.year,
+            parts.month - 1,
+            parts.day,
+            12, 0, 0
+        );
+
+        do {
+
+            nextDay.setDate(
+                nextDay.getDate() + 1
+            );
+
+            const weekday =
+                nextDay.toLocaleDateString(
+                    "en-US",
+                    {
+                        weekday: "short",
+                        timeZone: "America/New_York"
+                    }
+                );
+
+            const key =
+                `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
+
+            if (
+                weekday !== "Sat" &&
+                weekday !== "Sun" &&
+                !stockMarketHolidays2026.has(key)
+            ) {
+                break;
+            }
+
+        } while (true);
+
+        target = new Date(
+            nextDay.getFullYear(),
+            nextDay.getMonth(),
+            nextDay.getDate(),
+            9, 30, 0
+        );
+
+        label = "OPENS IN";
+    }
+
+    const remaining = Math.max(
+        0,
+        Math.floor(
+            (target.getTime() - Date.now()) / 1000
+        )
+    );
+
+    const days =
+        Math.floor(remaining / 86400);
+
+    const hours =
+        Math.floor((remaining % 86400) / 3600);
+
+    const mins =
+        Math.floor((remaining % 3600) / 60);
+
+    const secs =
+        remaining % 60;
+
+    const clock =
+        (days > 0 ? `${days}d ` : "") +
+        `${String(hours).padStart(2, "0")}:` +
+        `${String(mins).padStart(2, "0")}:` +
+        `${String(secs).padStart(2, "0")}`;
+
+    el.textContent =
+        `${label} ${clock}`;
+}
+
+
+/* =========================================================
    MARKET STATUS
    ========================================================= */
 
@@ -2649,11 +2793,11 @@ function getNikkeiStatus() {
 }
 
 
-function getFTSEStatus() {
+function getEuroStoxxStatus() {
 
     const parts =
         getTimeParts(
-            "Europe/London"
+            "Europe/Paris"
         );
 
     if (!isWeekday(parts)) {
@@ -2665,8 +2809,8 @@ function getFTSEStatus() {
         parts.minute;
 
     return (
-        minutes >= 8 * 60 &&
-        minutes < 16 * 60 + 30
+        minutes >= 9 * 60 &&
+        minutes < 17 * 60 + 30
     )
         ? "OPEN"
         : "CLOSED";
@@ -2760,8 +2904,8 @@ function getMarketStatus(symbol) {
         return getNikkeiStatus();
     }
 
-    if (symbol === "^FTSE") {
-        return getFTSEStatus();
+    if (symbol === "^STOXX50E") {
+        return getEuroStoxxStatus();
     }
 
     return "CLOSED";
@@ -3026,6 +3170,49 @@ function updateSP500High(data) {
     }
 }
 
+
+function update52WeekMetrics(data, prefix) {
+
+    const highEl =
+        document.getElementById(prefix + "-high");
+
+    const distEl =
+        document.getElementById(prefix + "-dist");
+
+    if (
+        data &&
+        typeof data.fiftyTwoWeekHigh === "number"
+    ) {
+        if (highEl) {
+            highEl.textContent =
+                `52W High ${formatNumber(data.fiftyTwoWeekHigh)}`;
+        }
+    } else {
+        if (highEl) {
+            highEl.textContent = "52W High --";
+        }
+    }
+
+    if (
+        data &&
+        typeof data.price === "number" &&
+        typeof data.fiftyTwoWeekHigh === "number" &&
+        data.fiftyTwoWeekHigh > 0
+    ) {
+        const distance =
+            ((data.fiftyTwoWeekHigh - data.price) /
+                data.fiftyTwoWeekHigh) * 100;
+
+        if (distEl) {
+            distEl.textContent =
+                `52W Dist. ${distance.toFixed(2)}%`;
+        }
+    } else {
+        if (distEl) {
+            distEl.textContent = "52W Dist. --";
+        }
+    }
+}
 
 /* =========================================================
    OVERVIEW MARKET DISPLAY
@@ -3404,7 +3591,7 @@ async function updateMarkets() {
         wti,
         futures,
         nikkei,
-        ftse
+        eurostoxx
     ] =
         await Promise.all([
 
@@ -3416,7 +3603,7 @@ async function updateMarkets() {
             getYahooQuote("CL=F"),
             getYahooQuote("ES=F"),
             getYahooQuote("^N225"),
-            getYahooQuote("^FTSE")
+            getYahooQuote("^STOXX50E")
 
         ]);
 
@@ -3447,12 +3634,24 @@ async function updateMarkets() {
         }
     );
 
+    
+    update52WeekMetrics(
+        nasdaq,
+        "nasdaq"
+    );
+
+
     updateMarketCard(
         "russell",
         russell,
         {
             symbol: "^RUT"
         }
+    );
+
+    update52WeekMetrics(
+        russell,
+        "russell"
     );
 
     updateMarketCard(
@@ -3498,10 +3697,10 @@ async function updateMarkets() {
     );
 
     updateMarketCard(
-        "ftse",
-        ftse,
+        "eurostoxx",
+        eurostoxx,
         {
-            symbol: "^FTSE"
+            symbol: "^STOXX50E"
         }
     );
 
@@ -3555,8 +3754,8 @@ async function updateMarkets() {
     );
 
     updateOverviewSecondary(
-        "ftse",
-        ftse
+        "eurostoxx",
+        eurostoxx
     );
 
 
@@ -5700,6 +5899,8 @@ updateAFD();
 
 updatePageClock();
 
+updateMarketCountdown();
+
 
 /* =========================================================
    REFRESH TIMERS
@@ -5736,6 +5937,10 @@ setInterval(
     1000
 );
 
+setInterval(
+    updateMarketCountdown,
+    1000
+);
 
 /* =========================================================
    REDRAW CHARTS WHEN WINDOW SIZE CHANGES
