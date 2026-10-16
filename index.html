@@ -174,6 +174,10 @@ h2 {
     letter-spacing: 0.4px;
 }
 
+.market-status.closed {
+    color: #d6ad55;
+}
+
 .high52 {
     font-size: 11px;
     color: #9da4ae;
@@ -978,6 +982,17 @@ body.overview-mode .page-header {
     color: #ef7373;
 }
 
+/* =========================================================
+   REGIONAL RADAR
+   ========================================================= */
+
+.regional-radar-image {
+    display: block;
+    width: 100%;
+    max-width: 700px;
+    height: auto;
+    margin: 0 auto;
+}
 
 </style>
 </head>
@@ -2194,7 +2209,26 @@ body.overview-mode .page-header {
 
         </div>
 
+<!-- REGIONAL RADAR -->
 
+    <div class="section">
+
+        <h2>
+            REGIONAL RADAR
+        </h2>
+
+        <div class="card">
+
+            <img
+		id="regional-radar"
+                src="https://radar.weather.gov/ridge/standard/SOUTHMISSVLY_0.gif"
+                alt="South Mississippi Valley weather radar"
+                class="regional-radar-image"
+            >
+
+        </div>
+
+    </div>
      
     <!-- AFD -->
 
@@ -3164,8 +3198,15 @@ function updateMarketCard(
             options.symbol
         );
 
-    statusEl.textContent =
-        `● ${status}`;
+    
+statusEl.textContent =
+    `● ${status}`;
+
+statusEl.classList.toggle(
+    "closed",
+    status === "CLOSED"
+);
+
 
     if (updatedEl) {
 
@@ -6258,6 +6299,23 @@ window.addEventListener(
         }
     }
 );
+
+
+/* =========================================================
+   REGIONAL RADAR AUTO-REFRESH
+   ========================================================= */
+
+const regionalRadar =
+    document.getElementById("regional-radar");
+
+if (regionalRadar) {
+    setInterval(function () {
+        regionalRadar.src =
+            "https://radar.weather.gov/ridge/standard/SOUTHMISSVLY_0.gif?t=" +
+            Date.now();
+    }, 2 * 60 * 1000);
+}
+
 
 </script>
 
