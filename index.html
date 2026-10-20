@@ -178,6 +178,10 @@ h2 {
     color: #d6ad55;
 }
 
+.market-updated.stale {
+    color: #d6ad55;
+}
+
 .high52 {
     font-size: 11px;
     color: #9da4ae;
@@ -3208,7 +3212,7 @@ statusEl.classList.toggle(
 );
 
 
-    if (updatedEl) {
+        if (updatedEl) {
 
         const timestamp =
             data.marketTimestamp ||
@@ -3216,6 +3220,18 @@ statusEl.classList.toggle(
 
         updatedEl.textContent =
             `Updated ${formatMarketTimestamp(timestamp)}`;
+
+        const timestampMs =
+            timestamp ? new Date(timestamp).getTime() : NaN;
+
+        const age =
+            Date.now() - timestampMs;
+
+        updatedEl.classList.toggle(
+            "stale",
+            Number.isFinite(timestampMs) &&
+            age >= 20 * 60 * 1000
+        );
     }
 }
 
