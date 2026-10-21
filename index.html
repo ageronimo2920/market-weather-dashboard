@@ -2611,128 +2611,174 @@ function isWeekday(parts) {
 }
 
 
+
 /* =========================================================
-   MARKET COUNTDOWN
+   MARKET COUNTDOWN — SIMPLE EASTERN TIME SCHEDULE
    ========================================================= */
 
 function updateMarketCountdown() {
-
-    const el =
-        document.getElementById(
-            "market-countdown"
-        );
-
+    const el = document.getElementById("market-countdown");
     if (!el) return;
 
-    const parts =
-        getTimeParts(
-            "America/New_York"
-        );
+    const parts = getTimeParts("America/New_York");
+    const now = new Date();
 
-    const minutes =
-        parts.hour * 60 +
-        parts.minute;
-
-    const todayKey =
-        dateKey(parts);
-
+    const minutes = parts.hour * 60 + parts.minute;
+    const todayKey = dateKey(parts);
     const tradingDay =
         isWeekday(parts) &&
         !stockMarketHolidays2026.has(todayKey);
 
-    let target;
-    let label;
-
-    if (tradingDay && minutes < 570) {
-
-        target = new Date(
-            parts.year,
-            parts.month - 1,
-            parts.day,
-            9, 30, 0
+    function targetAt(hour, minute, dayOffset = 0) {
+        // Build the target in Eastern Time, including DST.
+        const easternNow = new Date(
+            now.toLocaleString("en-US", {
+                timeZone: "America/New_York"
+            })
         );
 
+        easternNow.setDate(easternNow.getDate() + dayOffset);
+        easternNow.setHours(hour, minute, 0, 0);
+
+        // Convert the Eastern wall time back to a real timestamp.
+        const targetParts = getTimePartsFromDate(
+            easternNow,
+            "America/New_York"
+        );
+
+        return new Date(
+            easternNow.getTime() +
+            (Date.UTC(
+                targetParts.year,
+                targetParts.month - 1,
+                targetParts.day,
+                targetParts.hour,
+                targetParts.minute
+            ) - Date.UTC(
+                easternNow.getFullYear(),
+                easternNow.getMonth(),
+                easternNow.getDate(),
+                easternNow.getHours(),
+                easternNow.getMinutes()
+            ))
+        );
+    }
+
+    function getTimePartsFromDate(date, timeZone) {
+        const values = {};
+        new Intl.DateTimeFormat("en-US", {
+            timeZone,
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            hourCycle: "h23"
+        }).formatToParts(date).forEach(part => {
+            if (part.type !== "literal") values[part.type] = part.value;
+        });
+
+        return {
+            year: Number(values.year),
+            month: Number(values.month),
+            day: Number(values.day),
+            hour: Number(values.hour),
+            minute: Number(values.minute)
+        };
+    }
+
+    let label;
+    let target;
+
+    // Friday 4 PM through Sunday 6 PM:
+    // count down all the way to Sunday futures reopening.
+    if (
+        (parts.weekday === "Fri" && minutes >= 16 * 60) ||
+        parts.weekday === "Sat" ||
+        (parts.weekday === "Sun" && minutes < 18 * 60)
+    ) {
+        const daysUntilSunday =
+            parts.weekday === "Fri" ? 2 :
+            parts.weekday === "Sat" ? 1 : 0;
+
+        label = "US FUTURES IN";
+        target = targetAt(18, 0, daysUntilSunday);
+
+    } else if (minutes >= 20 * 60 || minutes < 3 * 60) {
+        label = "EUROPE IN";
+        target = targetAt(3, 0, minutes >= 20 * 60 ? 1 : 0);
+
+    } else if (minutes >= 18 * 60) {
+        label = "ASIA IN";
+        target = targetAt(20, 0);
+
+    } else if (minutes >= 16 * 60) {
+        label = "US FUTURES IN";
+        target = targetAt(18, 0);
+
+    } else if (minutes < 9 * 60 + 30) {
         label = "OPENS IN";
 
-    } else if (
-        tradingDay &&
-        minutes < 960
-    ) {
+        let offset = 0;
+        let check = new Date(now);
 
-        target = new Date(
-            parts.year,
-            parts.month - 1,
-            parts.day,
-            16, 0, 0
-        );
+        while (true) {
+            const p = getTimeParts("America/New_York");
+            check = new Date(now);
+            check.setDate(check.getDate() + offset);
 
-        label = "CLOSES IN";
-
-    } else {
-
-        const nextDay = new Date(
-            parts.year,
-            parts.month - 1,
-            parts.day,
-            12, 0, 0
-        );
-
-        do {
-
-            nextDay.setDate(
-                nextDay.getDate() + 1
-            );
-
-            const weekday =
-                nextDay.toLocaleDateString(
-                    "en-US",
-                    {
-                        weekday: "short",
-                        timeZone: "America/New_York"
-                    }
-                );
-
-            const key =
-                `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, "0")}-${String(nextDay.getDate()).padStart(2, "0")}`;
+            const dayParts = getTimePartsForDay(check);
+            const key = `${dayParts.year}-${String(dayParts.month).padStart(2, "0")}-${String(dayParts.day).padStart(2, "0")}`;
 
             if (
-                weekday !== "Sat" &&
-                weekday !== "Sun" &&
-                !stockMarketHolidays2026.has(key)
-            ) {
-                break;
-            }
+                ["Mon", "Tue", "Wed", "Thu", "Fri"].includes(dayParts.weekday) &&
+                !stockMarketHolidays2026.has(key) &&
+                (offset > 0 || minutes < 570)
+            ) break;
 
-        } while (true);
+            offset++;
+        }
 
-        target = new Date(
-            nextDay.getFullYear(),
-            nextDay.getMonth(),
-            nextDay.getDate(),
-            9, 30, 0
-        );
+        target = targetAt(9, 30, offset);
 
-        label = "OPENS IN";
+    } else if (minutes < 16 * 60 && tradingDay) {
+        label = "CLOSES IN";
+        target = targetAt(16, 0);
+
+    } else {
+        label = "US FUTURES IN";
+        target = targetAt(18, 0);
+    }
+
+    function getTimePartsForDay(date) {
+        const values = {};
+        new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/New_York",
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            weekday: "short"
+        }).formatToParts(date).forEach(part => {
+            if (part.type !== "literal") values[part.type] = part.value;
+        });
+
+        return {
+            year: Number(values.year),
+            month: Number(values.month),
+            day: Number(values.day),
+            weekday: values.weekday
+        };
     }
 
     const remaining = Math.max(
         0,
-        Math.floor(
-            (target.getTime() - Date.now()) / 1000
-        )
+        Math.floor((target.getTime() - now.getTime()) / 1000)
     );
 
-    const days =
-        Math.floor(remaining / 86400);
-
-    const hours =
-        Math.floor((remaining % 86400) / 3600);
-
-    const mins =
-        Math.floor((remaining % 3600) / 60);
-
-    const secs =
-        remaining % 60;
+    const days = Math.floor(remaining / 86400);
+    const hours = Math.floor((remaining % 86400) / 3600);
+    const mins = Math.floor((remaining % 3600) / 60);
+    const secs = remaining % 60;
 
     const clock =
         (days > 0 ? `${days}d ` : "") +
@@ -2740,8 +2786,7 @@ function updateMarketCountdown() {
         `${String(mins).padStart(2, "0")}:` +
         `${String(secs).padStart(2, "0")}`;
 
-    el.textContent =
-        `${label} ${clock}`;
+    el.textContent = `${label} ${clock}`;
 }
 
 
