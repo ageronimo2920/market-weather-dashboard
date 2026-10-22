@@ -998,6 +998,26 @@ body.overview-mode .page-header {
     margin: 0 auto;
 }
 
+/* VIX, 10-Year Yield, and WTI level-alert dots */
+.market-price.level-alert-yellow::after,
+.market-price.level-alert-red::after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 9px;
+    vertical-align: middle;
+}
+
+.market-price.level-alert-yellow::after {
+    background-color: #facc15;
+}
+
+.market-price.level-alert-red::after {
+    background-color: #ef4444;
+}
+
 </style>
 </head>
 
@@ -3143,6 +3163,43 @@ function getMarketStatus(symbol) {
     return "CLOSED";
 }
 
+function updateMarketLevelIndicator(id, price) {
+    const priceEl = document.getElementById(`${id}-price`);
+    if (!priceEl) return;
+
+    priceEl.classList.remove(
+        "level-alert-yellow",
+        "level-alert-red"
+    );
+
+    if (!Number.isFinite(price)) return;
+
+    let alertClass = "";
+
+    if (id === "vix") {
+        if (price > 30) {
+            alertClass = "level-alert-red";
+        } else if (price >= 20) {
+            alertClass = "level-alert-yellow";
+        }
+    } else if (id === "tnx") {
+        if (price > 4.5) {
+            alertClass = "level-alert-red";
+        } else if (price >= 4.0) {
+            alertClass = "level-alert-yellow";
+        }
+    } else if (id === "wti") {
+        if (price >= 90) {
+            alertClass = "level-alert-red";
+        } else if (price >= 70) {
+            alertClass = "level-alert-yellow";
+        }
+    }
+
+    if (alertClass) {
+        priceEl.classList.add(alertClass);
+    }
+}
 
 function updateMarketCard(
     id,
@@ -3170,11 +3227,13 @@ function updateMarketCard(
             `${id}-updated`
         );
 
-    if (!data) {
+   if (!data) {
 
-        priceEl.textContent = "--";
+    priceEl.textContent = "--";
 
-        changeEl.textContent = "--";
+    updateMarketLevelIndicator(id, NaN);
+
+    changeEl.textContent = "--";
 
         if (updatedEl) {
             updatedEl.textContent =
@@ -3210,6 +3269,8 @@ function updateMarketCard(
 
     priceEl.textContent =
         priceText;
+
+    updateMarketLevelIndicator(id, data.price);
 
     const direction =
         data.change >= 0
