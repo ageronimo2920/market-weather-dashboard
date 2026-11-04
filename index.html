@@ -192,8 +192,20 @@ h2 {
 
 .macro-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
+}
+
+.futures-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.global-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
 }
 
 /* =========================================================
@@ -744,7 +756,8 @@ h2 {
     border-top: 1px solid #272c34;
 }
 
-body.overview-mode .full-dashboard {
+body.overview-mode .full-dashboard,
+body.finviz-mode .full-dashboard {
     display: none;
 }
 
@@ -752,11 +765,21 @@ body.overview-mode #overview-panel {
     display: block;
 }
 
-body.overview-mode .container {
+body.finviz-mode #overview-panel {
+    display: none;
+}
+
+body.finviz-mode #finviz-panel {
+    display: block;
+}
+
+body.overview-mode .container,
+body.finviz-mode .container {
     width: min(1200px, calc(100vw - 40px));
 }
 
-body.overview-mode .page-header {
+body.overview-mode .page-header,
+body.finviz-mode .page-header {
     margin-bottom: 12px;
 }
 
@@ -839,15 +862,23 @@ body.overview-mode .page-header {
     }
 
     .market-grid {
-        grid-template-columns: 1fr;
-    }
+    grid-template-columns: 1fr;
+}
+
+.futures-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.global-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
 
     .main-market-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .macro-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .chart-wrap {
@@ -1018,6 +1049,133 @@ body.overview-mode .page-header {
     background-color: #ef4444;
 }
 
+/* =========================================================
+   FINVIZ VIEW
+   ========================================================= */
+
+#finviz-panel {
+    display: none;
+}
+
+.finviz-section {
+    margin-bottom: 18px;
+}
+
+.finviz-section h2 {
+    color: #9aa2ad;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    margin: 0 0 9px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid #272c34;
+}
+
+.finviz-pulse-bar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: #181b21;
+    border: 1px solid #272c34;
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-size: 12px;
+}
+
+#finviz-countdown {
+    margin-left: auto;
+    color: #929aa5;
+    font-size: 11px;
+}
+
+.finviz-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.finviz-grid-two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.finviz-grid-three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.finviz-card {
+    min-width: 0;
+    background: #181b21;
+    border: 1px solid #272c34;
+    border-radius: 8px;
+    padding: 12px;
+    color: #ffffff;
+    transition: background 0.15s ease;
+}
+
+.finviz-name {
+    color: #d5d9df;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.finviz-price {
+    font-size: 20px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.finviz-change {
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 5px;
+    white-space: nowrap;
+}
+
+.finviz-card.positive {
+    background: #167044;
+    border-color: #218653;
+}
+
+.finviz-card.negative {
+    background: #a83232;
+    border-color: #c04444;
+}
+
+.finviz-card.positive .finviz-name,
+.finviz-card.negative .finviz-name {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+@media (max-width: 700px) {
+
+    .finviz-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .finviz-grid-two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .finviz-grid-three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .finviz-card {
+        padding: 10px;
+    }
+
+    .finviz-price {
+        font-size: 17px;
+    }
+
+    .finviz-change {
+        font-size: 12px;
+    }
+}
+
 </style>
 </head>
 
@@ -1025,35 +1183,43 @@ body.overview-mode .page-header {
 
 <div class="container">
 
-    <!-- =====================================================
-         HEADER
-         ===================================================== -->
+   <!-- =====================================================
+     HEADER
+     ===================================================== -->
 
-    <div class="page-header">
+<div class="page-header">
 
-        <h1>MARKET + WEATHER</h1>
+    <h1>MARKET + WEATHER</h1>
 
-        <div class="view-toggle">
+    <div class="view-toggle">
 
-            <button
-                class="view-button active"
-                id="full-view-button"
-                type="button"
-            >
-                FULL VIEW
-            </button>
+        <button
+            class="view-button active"
+            id="full-view-button"
+            type="button"
+        >
+            FULL VIEW
+        </button>
 
-            <button
-                class="view-button"
-                id="overview-button"
-                type="button"
-            >
-                OVERVIEW
-            </button>
+        <button
+            class="view-button"
+            id="finviz-button"
+            type="button"
+        >
+            FINVIZ
+        </button>
 
-        </div>
+        <button
+            class="view-button"
+            id="overview-button"
+            type="button"
+        >
+            OVERVIEW
+        </button>
 
     </div>
+
+</div>
 
 
     <!-- =====================================================
@@ -1438,6 +1604,143 @@ body.overview-mode .page-header {
 
     </div>
 
+<!-- =====================================================
+     FINVIZ PANEL
+     ===================================================== -->
+
+<div id="finviz-panel">
+
+    <div class="finviz-section">
+
+        <h2>MARKET PULSE</h2>
+
+        <div class="finviz-pulse-bar">
+            <span id="finviz-pulse-dot">⚪</span>
+            <span id="finviz-pulse-label">Loading...</span>
+            <span id="finviz-countdown"></span>
+        </div>
+
+    </div>
+
+    <div class="finviz-section">
+
+        <h2>U.S. MARKETS</h2>
+
+        <div class="finviz-grid" id="finviz-index-grid">
+
+            <div class="finviz-card" id="finviz-sp500">
+                <div class="finviz-name">S&amp;P 500</div>
+                <div class="finviz-price" id="finviz-sp500-price">--</div>
+                <div class="finviz-change" id="finviz-sp500-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-nasdaq">
+                <div class="finviz-name">NASDAQ</div>
+                <div class="finviz-price" id="finviz-nasdaq-price">--</div>
+                <div class="finviz-change" id="finviz-nasdaq-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-russell">
+                <div class="finviz-name">RUSSELL 2000</div>
+                <div class="finviz-price" id="finviz-russell-price">--</div>
+                <div class="finviz-change" id="finviz-russell-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-dow">
+                <div class="finviz-name">DOW</div>
+                <div class="finviz-price" id="finviz-dow-price">--</div>
+                <div class="finviz-change" id="finviz-dow-change">--</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="finviz-section">
+
+        <h2>U.S. FUTURES</h2>
+
+        <div class="finviz-grid">
+
+            <div class="finviz-card" id="finviz-sp500f">
+                <div class="finviz-name">S&amp;P FUTURES</div>
+                <div class="finviz-price" id="finviz-sp500f-price">--</div>
+                <div class="finviz-change" id="finviz-sp500f-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-nasdaqf">
+                <div class="finviz-name">NASDAQ 100</div>
+                <div class="finviz-price" id="finviz-nasdaqf-price">--</div>
+                <div class="finviz-change" id="finviz-nasdaqf-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-russellf">
+                <div class="finviz-name">RUSSELL 2000</div>
+                <div class="finviz-price" id="finviz-russellf-price">--</div>
+                <div class="finviz-change" id="finviz-russellf-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-dowf">
+                <div class="finviz-name">DOW FUTURES</div>
+                <div class="finviz-price" id="finviz-dowf-price">--</div>
+                <div class="finviz-change" id="finviz-dowf-change">--</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="finviz-section">
+
+        <h2>GLOBAL MARKETS</h2>
+
+        <div class="finviz-grid finviz-grid-two">
+
+            <div class="finviz-card" id="finviz-nikkei">
+                <div class="finviz-name">NIKKEI 225</div>
+                <div class="finviz-price" id="finviz-nikkei-price">--</div>
+                <div class="finviz-change" id="finviz-nikkei-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-eurostoxx">
+                <div class="finviz-name">EURO STOXX 50</div>
+                <div class="finviz-price" id="finviz-eurostoxx-price">--</div>
+                <div class="finviz-change" id="finviz-eurostoxx-change">--</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="finviz-section">
+
+        <h2>MACRO</h2>
+
+        <div class="finviz-grid finviz-grid-three">
+
+            <div class="finviz-card" id="finviz-tnx">
+                <div class="finviz-name">10-YEAR YIELD</div>
+                <div class="finviz-price" id="finviz-tnx-price">--</div>
+                <div class="finviz-change" id="finviz-tnx-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-wti">
+                <div class="finviz-name">WTI CRUDE</div>
+                <div class="finviz-price" id="finviz-wti-price">--</div>
+                <div class="finviz-change" id="finviz-wti-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-vix">
+                <div class="finviz-name">VIX</div>
+                <div class="finviz-price" id="finviz-vix-price">--</div>
+                <div class="finviz-change" id="finviz-vix-change">--</div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
     <!-- =====================================================
          FULL DASHBOARD
@@ -1629,39 +1932,53 @@ body.overview-mode .page-header {
 
                 <div class="card market-card">
 
-                    <div class="market-name">
-                        VIX
-                    </div>
+    <div class="market-name">
+        Dow Jones
+    </div>
 
-                    <div
-                        class="market-price"
-                        id="vix-price"
-                    >
-                        --
-                    </div>
+    <div
+        class="market-price"
+        id="dow-price"
+    >
+        --
+    </div>
 
-                    <div
-                        class="market-change"
-                        id="vix-change"
-                    >
-                        --
-                    </div>
+    <div
+        class="market-change"
+        id="dow-change"
+    >
+        --
+    </div>
 
-                    <div
-                        class="market-status"
-                        id="vix-status"
-                    >
-                        ● --
-                    </div>
+    <div
+        class="high52"
+        id="dow-high"
+    >
+        52W High --
+    </div>
 
-                    <div
-                        class="market-updated"
-                        id="vix-updated"
-                    >
-                        Updated --
-                    </div>
+    <div
+        class="high52"
+        id="dow-dist"
+    >
+        52W Dist. --
+    </div>
 
-                </div>
+    <div
+        class="market-status"
+        id="dow-status"
+    >
+        ● --
+    </div>
+
+    <div
+        class="market-updated"
+        id="dow-updated"
+    >
+        Updated --
+    </div>
+
+</div>
 
             </div>
 
@@ -1912,132 +2229,120 @@ body.overview-mode .page-header {
 
                 </div>
 
+<div class="card market-card">
+
+    <div class="market-name">
+        VIX
+    </div>
+
+    <div
+        class="market-price"
+        id="vix-price"
+    >
+        --
+    </div>
+
+    <div
+        class="market-change"
+        id="vix-change"
+    >
+        --
+    </div>
+
+    <div
+        class="market-status"
+        id="vix-status"
+    >
+        ● --
+    </div>
+
+    <div
+        class="market-updated"
+        id="vix-updated"
+    >
+        Updated --
+    </div>
+
+</div>
             </div>
 
         </div>
 
 
-        <!-- GLOBAL + FUTURES -->
+ 
+<!-- FUTURES -->
 
-        <div class="section">
+<div class="section">
 
-            <h2>GLOBAL + FUTURES</h2>
+    <h2>FUTURES</h2>
 
-            <div class="global-grid">
+    <div class="futures-grid">
 
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        S&amp;P 500 Futures
-                    </div>
-
-                    <div
-                        class="market-price"
-                        id="sp500f-price"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="sp500f-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="sp500f-status"
-                    >
-                        ● --
-                    </div>
-
-                    <div
-                        class="market-updated"
-                        id="sp500f-updated"
-                    >
-                        Updated --
-                    </div>
-
-                </div>
-
-
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        Nikkei 225
-                    </div>
-
-                    <div
-                        class="market-price"
-                        id="nikkei-price"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="nikkei-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="nikkei-status"
-                    >
-                        ● --
-                    </div>
-
-                    <div
-                        class="market-updated"
-                        id="nikkei-updated"
-                    >
-                        Updated --
-                    </div>
-
-                </div>
-
-
-                <div class="card market-card">
-
-                    <div class="market-name">
-                        EURO STOXX 50
-                    </div>
-
-                    <div
-                        class="market-price"
-                        id="eurostoxx-price"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-change"
-                        id="eurostoxx-change"
-                    >
-                        --
-                    </div>
-
-                    <div
-                        class="market-status"
-                        id="eurostoxx-status"
-                    >
-                        ● --
-                    </div>
-
-                    <div
-                        class="market-updated"
-                        id="eurostoxx-updated"
-                    >
-                        Updated --
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="card market-card">
+            <div class="market-name">S&amp;P 500 Futures</div>
+            <div class="market-price" id="sp500f-price">--</div>
+            <div class="market-change" id="sp500f-change">--</div>
+            <div class="market-status" id="sp500f-status">● --</div>
+            <div class="market-updated" id="sp500f-updated">Updated --</div>
         </div>
+
+        <div class="card market-card">
+            <div class="market-name">Nasdaq 100 Futures</div>
+            <div class="market-price" id="nasdaqf-price">--</div>
+            <div class="market-change" id="nasdaqf-change">--</div>
+            <div class="market-status" id="nasdaqf-status">● --</div>
+            <div class="market-updated" id="nasdaqf-updated">Updated --</div>
+        </div>
+
+        <div class="card market-card">
+            <div class="market-name">Russell 2000 Futures</div>
+            <div class="market-price" id="russellf-price">--</div>
+            <div class="market-change" id="russellf-change">--</div>
+            <div class="market-status" id="russellf-status">● --</div>
+            <div class="market-updated" id="russellf-updated">Updated --</div>
+        </div>
+
+        <div class="card market-card">
+            <div class="market-name">Dow Futures</div>
+            <div class="market-price" id="dowf-price">--</div>
+            <div class="market-change" id="dowf-change">--</div>
+            <div class="market-status" id="dowf-status">● --</div>
+            <div class="market-updated" id="dowf-updated">Updated --</div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- GLOBAL MARKETS -->
+
+<div class="section">
+
+    <h2>GLOBAL MARKETS</h2>
+
+    <div class="global-grid">
+
+        <div class="card market-card">
+            <div class="market-name">Nikkei 225</div>
+            <div class="market-price" id="nikkei-price">--</div>
+            <div class="market-change" id="nikkei-change">--</div>
+            <div class="market-status" id="nikkei-status">● --</div>
+            <div class="market-updated" id="nikkei-updated">Updated --</div>
+        </div>
+
+        <div class="card market-card">
+            <div class="market-name">EURO STOXX 50</div>
+            <div class="market-price" id="eurostoxx-price">--</div>
+            <div class="market-change" id="eurostoxx-change">--</div>
+            <div class="market-status" id="eurostoxx-status">● --</div>
+            <div class="market-updated" id="eurostoxx-updated">Updated --</div>
+        </div>
+
+    </div>
+
+</div>
+
 
 
         <!-- MARKET PULSE -->
@@ -2326,6 +2631,11 @@ const fullViewButton =
         "full-view-button"
     );
 
+const finvizButton =
+    document.getElementById(
+        "finviz-button"
+    );
+
 const overviewButton =
     document.getElementById(
         "overview-button"
@@ -2337,14 +2647,27 @@ function setView(view) {
     const overview =
         view === "overview";
 
+    const finviz =
+        view === "finviz";
+
     document.body.classList.toggle(
         "overview-mode",
         overview
     );
 
+    document.body.classList.toggle(
+        "finviz-mode",
+        finviz
+    );
+
     fullViewButton.classList.toggle(
         "active",
-        !overview
+        view === "full"
+    );
+
+    finvizButton.classList.toggle(
+        "active",
+        finviz
     );
 
     overviewButton.classList.toggle(
@@ -2352,8 +2675,9 @@ function setView(view) {
         overview
     );
 
+
     if (
-        !overview &&
+        view === "full" &&
         sp500ChartCache &&
         sp500ChartCache.length
     ) {
@@ -2369,6 +2693,7 @@ function setView(view) {
             20
         );
     }
+
 
     if (
         overview &&
@@ -2387,12 +2712,18 @@ function setView(view) {
             20
         );
     }
+
 }
 
 
 fullViewButton.addEventListener(
     "click",
     () => setView("full")
+);
+
+finvizButton.addEventListener(
+    "click",
+    () => setView("finviz")
 );
 
 overviewButton.addEventListener(
@@ -2807,6 +3138,13 @@ function updateMarketCountdown() {
         `${String(secs).padStart(2, "0")}`;
 
     el.textContent = `${label} ${clock}`;
+
+const finvizCountdown =
+    document.getElementById("finviz-countdown");
+
+if (finvizCountdown) {
+    finvizCountdown.textContent = el.textContent;
+}
 }
 
 
@@ -3129,7 +3467,8 @@ function getMarketStatus(symbol) {
         [
             "^GSPC",
             "^IXIC",
-	    "^RUT" 	
+	    "^RUT",
+	    "^DJI"	 	
         ].includes(symbol)
     ) {
         return getUSStockStatus();
@@ -3146,7 +3485,10 @@ function getMarketStatus(symbol) {
     if (
         [
             "CL=F",
-            "ES=F"
+            "ES=F",
+	    "NQ=F",
+	    "RTY=F",
+	    "YM=F"
         ].includes(symbol)
     ) {
         return getFuturesStatus();
@@ -3341,6 +3683,64 @@ statusEl.classList.toggle(
     }
 }
 
+/* =========================================================
+   FINVIZ CARD UPDATE
+   ========================================================= */
+
+function updateFinvizCard(id, data, options = {}) {
+
+    const card =
+        document.getElementById(`finviz-${id}`);
+
+    const priceEl =
+        document.getElementById(`finviz-${id}-price`);
+
+    const changeEl =
+        document.getElementById(`finviz-${id}-change`);
+
+    if (!card || !priceEl || !changeEl) return;
+
+    card.classList.remove("positive", "negative");
+
+    if (!data || !Number.isFinite(data.price)) {
+        priceEl.textContent = "--";
+        changeEl.textContent = "--";
+        return;
+    }
+
+    let priceText;
+
+    if (options.commodity) {
+        priceText = formatCommodity(data.price);
+    } else if (options.yield) {
+        priceText = formatYield(data.price);
+    } else {
+        priceText = formatNumber(data.price);
+    }
+
+    priceEl.textContent = priceText;
+
+    const direction =
+        data.change >= 0 ? "+" : "";
+
+    let changeText;
+
+    if (options.yield) {
+        changeText =
+            `${direction}${data.change.toFixed(2)} pts (${direction}${data.changePct.toFixed(2)}%)`;
+    } else {
+        changeText =
+            `${direction}${formatNumber(data.change)} (${direction}${data.changePct.toFixed(2)}%)`;
+    }
+
+    changeEl.textContent = changeText;
+
+    if (data.change > 0) {
+        card.classList.add("positive");
+    } else if (data.change < 0) {
+        card.classList.add("negative");
+    }
+}
 
 function updateSP500High(data) {
 
@@ -3883,6 +4283,16 @@ function updateMarketPulse(
     ).textContent =
         icon;
 
+/* Finviz Market Pulse */
+
+document.getElementById(
+    "finviz-pulse-dot"
+).textContent = icon;
+
+document.getElementById(
+    "finviz-pulse-label"
+).textContent = label;
+
     const marketPulseDot = document.getElementById(
         "market-pulse-dot"
     );
@@ -3915,6 +4325,7 @@ function updateMarketPulse(
 }
 
 
+
 /* =========================================================
    MARKET UPDATE
    ========================================================= */
@@ -3924,11 +4335,15 @@ async function updateMarkets() {
     const [
         sp500,
         nasdaq,
-	russell,
+        russell,
+        dow,
         vix,
         tnx,
         wti,
         futures,
+        nasdaqFutures,
+        russellFutures,
+        dowFutures,
         nikkei,
         eurostoxx
     ] =
@@ -3936,167 +4351,105 @@ async function updateMarkets() {
 
             getYahooQuote("^GSPC"),
             getYahooQuote("^IXIC"),
-	    getYahooQuote("^RUT"),
+            getYahooQuote("^RUT"),
+            getYahooQuote("^DJI"),
             getYahooQuote("^VIX"),
             getYahooQuote("^TNX"),
             getYahooQuote("CL=F"),
             getYahooQuote("ES=F"),
+            getYahooQuote("NQ=F"),
+            getYahooQuote("RTY=F"),
+            getYahooQuote("YM=F"),
             getYahooQuote("^N225"),
             getYahooQuote("^STOXX50E")
 
         ]);
 
 
-    sp500LatestQuote =
-        sp500;
+    sp500LatestQuote = sp500;
 
 
-    /* Full view */
+    /* Full View */
 
-    updateMarketCard(
-        "sp500",
-        sp500,
-        {
-            symbol: "^GSPC"
-        }
-    );
+    updateMarketCard("sp500", sp500, { symbol: "^GSPC" });
+    updateSP500High(sp500);
 
-    updateSP500High(
-        sp500
-    );
+    updateMarketCard("nasdaq", nasdaq, { symbol: "^IXIC" });
+    update52WeekMetrics(nasdaq, "nasdaq");
 
-    updateMarketCard(
-        "nasdaq",
-        nasdaq,
-        {
-            symbol: "^IXIC"
-        }
-    );
+    updateMarketCard("russell", russell, { symbol: "^RUT" });
+    update52WeekMetrics(russell, "russell");
 
-    
-    update52WeekMetrics(
-        nasdaq,
-        "nasdaq"
-    );
+    updateMarketCard("dow", dow, { symbol: "^DJI" });
+    update52WeekMetrics(dow, "dow");
 
 
-    updateMarketCard(
-        "russell",
-        russell,
-        {
-            symbol: "^RUT"
-        }
-    );
+    /* Macro */
 
-    update52WeekMetrics(
-        russell,
-        "russell"
-    );
+    updateMarketCard("tnx", tnx, {
+        symbol: "^TNX",
+        yield: true
+    });
 
-    updateMarketCard(
-        "vix",
-        vix,
-        {
-            symbol: "^VIX"
-        }
-    );
+    updateMarketCard("wti", wti, {
+        symbol: "CL=F",
+        commodity: true
+    });
 
-    updateMarketCard(
-        "tnx",
-        tnx,
-        {
-            symbol: "^TNX",
-            yield: true
-        }
-    );
+    updateMarketCard("vix", vix, { symbol: "^VIX" });
 
-    updateMarketCard(
-        "wti",
-        wti,
-        {
-            symbol: "CL=F",
-            commodity: true
-        }
-    );
 
-    updateMarketCard(
-        "sp500f",
-        futures,
-        {
-            symbol: "ES=F"
-        }
-    );
+    /* Futures */
 
-    updateMarketCard(
-        "nikkei",
-        nikkei,
-        {
-            symbol: "^N225"
-        }
-    );
+    updateMarketCard("sp500f", futures, { symbol: "ES=F" });
 
-    updateMarketCard(
-        "eurostoxx",
-        eurostoxx,
-        {
-            symbol: "^STOXX50E"
-        }
-    );
+    updateMarketCard("nasdaqf", nasdaqFutures, { symbol: "NQ=F" });
 
+    updateMarketCard("russellf", russellFutures, { symbol: "RTY=F" });
+
+    updateMarketCard("dowf", dowFutures, { symbol: "YM=F" });
+
+
+    /* Global Markets */
+
+    updateMarketCard("nikkei", nikkei, { symbol: "^N225" });
+
+    updateMarketCard("eurostoxx", eurostoxx, { symbol: "^STOXX50E" });
+
+/* Finviz */
+
+updateFinvizCard("sp500", sp500);
+updateFinvizCard("nasdaq", nasdaq);
+updateFinvizCard("russell", russell);
+updateFinvizCard("dow", dow);
+
+updateFinvizCard("sp500f", futures);
+updateFinvizCard("nasdaqf", nasdaqFutures);
+updateFinvizCard("russellf", russellFutures);
+updateFinvizCard("dowf", dowFutures);
+
+updateFinvizCard("nikkei", nikkei);
+updateFinvizCard("eurostoxx", eurostoxx);
+
+updateFinvizCard("tnx", tnx, { yield: true });
+updateFinvizCard("wti", wti, { commodity: true });
+updateFinvizCard("vix", vix);
 
     /* Overview */
 
-    updateOverviewMarketItem(
-        "sp500",
-        sp500
-    );
+    updateOverviewMarketItem("sp500", sp500);
+    updateOverviewMarketItem("nasdaq", nasdaq);
+    updateOverviewMarketItem("russell", russell);
+    updateOverviewMarketItem("vix", vix);
 
-    updateOverviewMarketItem(
-        "nasdaq",
-        nasdaq
-    );
+    updateOverviewSecondary("tnx", tnx, { yield: true });
+    updateOverviewSecondary("wti", wti, { commodity: true });
+    updateOverviewSecondary("sp500f", futures);
+    updateOverviewSecondary("nikkei", nikkei);
+    updateOverviewSecondary("eurostoxx", eurostoxx);
 
-    updateOverviewMarketItem(
-        "russell",
-        russell
-    );
 
-    updateOverviewMarketItem(
-        "vix",
-        vix
-    );
-
-    updateOverviewSecondary(
-        "tnx",
-        tnx,
-        {
-            yield: true
-        }
-    );
-
-    updateOverviewSecondary(
-        "wti",
-        wti,
-        {
-            commodity: true
-        }
-    );
-
-    updateOverviewSecondary(
-        "sp500f",
-        futures
-    );
-
-    updateOverviewSecondary(
-        "nikkei",
-        nikkei
-    );
-
-    updateOverviewSecondary(
-        "eurostoxx",
-        eurostoxx
-    );
-
+    /* Market Pulse */
 
     updateMarketPulse(
         sp500,
@@ -4106,6 +4459,7 @@ async function updateMarkets() {
         wti
     );
 }
+
 
 
 /* =========================================================
