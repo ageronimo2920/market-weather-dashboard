@@ -141,6 +141,41 @@ h2 {
     min-height: 128px;
 }
 
+/* FULL VIEW GRADIENT CARD TEXT */
+
+.market-card .market-name {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.market-card .market-price {
+    color: #ffffff;
+}
+
+.market-card .market-change {
+    color: #ffffff;
+}
+
+.market-card .market-change.positive,
+.market-card .market-change.negative {
+    color: #ffffff;
+}
+
+.market-card .market-status {
+    color: #ffffff;
+}
+
+.market-card .market-status.closed {
+    color: #ffe09a;
+}
+
+.market-card .market-updated {
+    color: #ffffff;
+}
+
+.market-card .high52 {
+    color: #ffffff;
+}
+
 .market-name {
     font-size: 13px;
     color: #aeb4bd;
@@ -187,6 +222,16 @@ h2 {
     color: #9da4ae;
     margin-top: 7px;
 }
+
+.market-card .high52.pullback-yellow {
+    color: #facc15;
+}
+
+.market-card .high52.pullback-red {
+    color: #ffb0b0;
+    font-weight: 700;
+}
+
 
 /* Macro is intentionally only two columns */
 
@@ -1039,6 +1084,8 @@ body.finviz-mode .page-header {
     border-radius: 50%;
     margin-left: 9px;
     vertical-align: middle;
+    border: 1px solid #20252b;
+
 }
 
 .market-price.level-alert-yellow::after {
@@ -1705,29 +1752,7 @@ body.finviz-mode .page-header {
 
     </div>
 
-    <div class="finviz-section">
-
-        <h2>GLOBAL MARKETS</h2>
-
-        <div class="finviz-grid finviz-grid-two">
-
-            <div class="finviz-card" id="finviz-nikkei">
-                <div class="finviz-name">NIKKEI 225</div>
-                <div class="finviz-price" id="finviz-nikkei-price">--</div>
-                <div class="finviz-change" id="finviz-nikkei-change">--</div>
-            </div>
-
-            <div class="finviz-card" id="finviz-eurostoxx">
-                <div class="finviz-name">EURO STOXX 50</div>
-                <div class="finviz-price" id="finviz-eurostoxx-price">--</div>
-                <div class="finviz-change" id="finviz-eurostoxx-change">--</div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="finviz-section">
+<div class="finviz-section">
 
         <h2>MACRO</h2>
 
@@ -1756,6 +1781,31 @@ body.finviz-mode .page-header {
     </div>
 
 </div>
+
+
+    <div class="finviz-section">
+
+        <h2>GLOBAL MARKETS</h2>
+
+        <div class="finviz-grid finviz-grid-two">
+
+            <div class="finviz-card" id="finviz-nikkei">
+                <div class="finviz-name">NIKKEI 225</div>
+                <div class="finviz-price" id="finviz-nikkei-price">--</div>
+                <div class="finviz-change" id="finviz-nikkei-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-eurostoxx">
+                <div class="finviz-name">EURO STOXX 50</div>
+                <div class="finviz-price" id="finviz-eurostoxx-price">--</div>
+                <div class="finviz-change" id="finviz-eurostoxx-change">--</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    
 
     <!-- =====================================================
          FULL DASHBOARD
@@ -3565,36 +3615,34 @@ function updateMarketCard(
 ) {
 
     const priceEl =
-        document.getElementById(
-            `${id}-price`
-        );
+        document.getElementById(`${id}-price`);
 
     const changeEl =
-        document.getElementById(
-            `${id}-change`
-        );
+        document.getElementById(`${id}-change`);
 
     const statusEl =
-        document.getElementById(
-            `${id}-status`
-        );
+        document.getElementById(`${id}-status`);
 
     const updatedEl =
-        document.getElementById(
-            `${id}-updated`
-        );
+        document.getElementById(`${id}-updated`);
 
-   if (!data) {
+    const cardEl =
+        priceEl.closest(".market-card");
 
-    priceEl.textContent = "--";
+    if (!data) {
 
-    updateMarketLevelIndicator(id, NaN);
+        priceEl.textContent = "--";
 
-    changeEl.textContent = "--";
+        updateMarketLevelIndicator(id, NaN);
+
+        changeEl.textContent = "--";
+
+        if (cardEl) {
+            cardEl.style.backgroundColor = "#181b21";
+        }
 
         if (updatedEl) {
-            updatedEl.textContent =
-                "Updated --";
+            updatedEl.textContent = "Updated --";
         }
 
         return;
@@ -3605,34 +3653,25 @@ function updateMarketCard(
     if (options.commodity) {
 
         priceText =
-            formatCommodity(
-                data.price
-            );
+            formatCommodity(data.price);
 
     } else if (options.yield) {
 
         priceText =
-            formatYield(
-                data.price
-            );
+            formatYield(data.price);
 
     } else {
 
         priceText =
-            formatNumber(
-                data.price
-            );
+            formatNumber(data.price);
     }
 
-    priceEl.textContent =
-        priceText;
+    priceEl.textContent = priceText;
 
     updateMarketLevelIndicator(id, data.price);
 
     const direction =
-        data.change >= 0
-            ? "+"
-            : "";
+        data.change >= 0 ? "+" : "";
 
     let changeText;
 
@@ -3647,8 +3686,7 @@ function updateMarketCard(
             `${direction}${formatNumber(data.change)} (${direction}${data.changePct.toFixed(2)}%)`;
     }
 
-    changeEl.textContent =
-        changeText;
+    changeEl.textContent = changeText;
 
     changeEl.className =
         "market-change " +
@@ -3660,22 +3698,33 @@ function updateMarketCard(
                     : ""
         );
 
+    // FULL VIEW CARD GRADIENT
+
+    if (
+        cardEl &&
+        Number.isFinite(data.changePct)
+    ) {
+
+        cardEl.style.backgroundColor =
+            getFinvizColor(data.changePct);
+
+    } else if (cardEl) {
+
+        cardEl.style.backgroundColor = "#181b21";
+    }
+
     const status =
-        getMarketStatus(
-            options.symbol
-        );
+        getMarketStatus(options.symbol);
 
-    
-statusEl.textContent =
-    `● ${status}`;
+    statusEl.textContent =
+        `● ${status}`;
 
-statusEl.classList.toggle(
-    "closed",
-    status === "CLOSED"
-);
+    statusEl.classList.toggle(
+        "closed",
+        status === "CLOSED"
+    );
 
-
-        if (updatedEl) {
+    if (updatedEl) {
 
         const timestamp =
             data.marketTimestamp ||
@@ -3697,7 +3746,6 @@ statusEl.classList.toggle(
         );
     }
 }
-
 /* =========================================================
    FINVIZ CARD UPDATE
    ========================================================= */
