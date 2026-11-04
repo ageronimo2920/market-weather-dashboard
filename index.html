@@ -1120,6 +1120,26 @@ body.finviz-mode .page-header {
     margin-bottom: 8px;
 }
 
+.finviz-alert-dot {
+    display: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-left: 6px;
+    vertical-align: middle;
+    border: 1px solid #20252b;
+}
+
+.finviz-alert-dot.yellow {
+    display: inline-block;
+    background: #f0c34e;
+}
+
+.finviz-alert-dot.red {
+    display: inline-block;
+    background: #ef7373;
+}
+
 .finviz-price {
     font-size: 20px;
     font-weight: 700;
@@ -1133,19 +1153,14 @@ body.finviz-mode .page-header {
     white-space: nowrap;
 }
 
-.finviz-card.positive {
-    background: #167044;
-    border-color: #218653;
-}
-
+.finviz-card.positive,
 .finviz-card.negative {
-    background: #a83232;
-    border-color: #c04444;
+    border-color: rgba(255, 255, 255, 0.16);
 }
 
 .finviz-card.positive .finviz-name,
 .finviz-card.negative .finviz-name {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 @media (max-width: 700px) {
@@ -1629,25 +1644,25 @@ body.finviz-mode .page-header {
         <div class="finviz-grid" id="finviz-index-grid">
 
             <div class="finviz-card" id="finviz-sp500">
-                <div class="finviz-name">S&amp;P 500</div>
+                <div class="finviz-name">S&amp;P 500 <span id="finviz-sp500-dot" class="finviz-alert-dot"></span></div>
                 <div class="finviz-price" id="finviz-sp500-price">--</div>
                 <div class="finviz-change" id="finviz-sp500-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-nasdaq">
-                <div class="finviz-name">NASDAQ</div>
+                <div class="finviz-name">NASDAQ <span id="finviz-nasdaq-dot" class="finviz-alert-dot"></span></div>
                 <div class="finviz-price" id="finviz-nasdaq-price">--</div>
                 <div class="finviz-change" id="finviz-nasdaq-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-russell">
-                <div class="finviz-name">RUSSELL 2000</div>
+                <div class="finviz-name">RUSSELL 2000 <span id="finviz-russell-dot" class="finviz-alert-dot"></span></div>
                 <div class="finviz-price" id="finviz-russell-price">--</div>
                 <div class="finviz-change" id="finviz-russell-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-dow">
-                <div class="finviz-name">DOW</div>
+                <div class="finviz-name">DOW <span id="finviz-dow-dot" class="finviz-alert-dot"></span></div>
                 <div class="finviz-price" id="finviz-dow-price">--</div>
                 <div class="finviz-change" id="finviz-dow-change">--</div>
             </div>
@@ -1719,19 +1734,19 @@ body.finviz-mode .page-header {
         <div class="finviz-grid finviz-grid-three">
 
             <div class="finviz-card" id="finviz-tnx">
-                <div class="finviz-name">10-YEAR YIELD</div>
+               <div class="finviz-name">10-YEAR YIELD <span id="finviz-tnx-dot" class="finviz-alert-dot"></span></div>
                 <div class="finviz-price" id="finviz-tnx-price">--</div>
                 <div class="finviz-change" id="finviz-tnx-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-wti">
-                <div class="finviz-name">WTI CRUDE</div>
+                <div class="finviz-name">WTI CRUDE <span id="finviz-wti-dot" class="finviz-alert-dot"></span></div>
                 <div class="finviz-price" id="finviz-wti-price">--</div>
                 <div class="finviz-change" id="finviz-wti-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-vix">
-                <div class="finviz-name">VIX</div>
+                <div class="finviz-name">VIX <span id="finviz-vix-dot" class="finviz-alert-dot"></span></div>
                 <div class="finviz-price" id="finviz-vix-price">--</div>
                 <div class="finviz-change" id="finviz-vix-change">--</div>
             </div>
@@ -3531,9 +3546,9 @@ function updateMarketLevelIndicator(id, price) {
             alertClass = "level-alert-yellow";
         }
     } else if (id === "wti") {
-        if (price >= 90) {
+        if (price >= 100) {
             alertClass = "level-alert-red";
-        } else if (price >= 70) {
+        } else if (price >= 90) {
             alertClass = "level-alert-yellow";
         }
     }
@@ -3687,6 +3702,91 @@ statusEl.classList.toggle(
    FINVIZ CARD UPDATE
    ========================================================= */
 
+function updateFinvizAlertDot(id, data) {
+
+    const dot =
+        document.getElementById(`finviz-${id}-dot`);
+
+    if (!dot) return;
+
+    dot.className = "finviz-alert-dot";
+
+    if (!data || !Number.isFinite(data.price)) return;
+
+    let alertClass = "";
+
+    // INDEX 52-WEEK PULLBACKS
+
+    if (
+        ["sp500", "nasdaq", "russell", "dow"].includes(id) &&
+        Number.isFinite(data.fiftyTwoWeekHigh) &&
+        data.fiftyTwoWeekHigh > 0
+    ) {
+
+        const distance =
+            ((data.fiftyTwoWeekHigh - data.price) /
+                data.fiftyTwoWeekHigh) * 100;
+
+        if (distance >= 10) {
+            alertClass = "red";
+        } else if (distance >= 5) {
+            alertClass = "yellow";
+        }
+    }
+
+    // MACRO WARNINGS
+
+    if (id === "vix") {
+        if (data.price > 30) {
+            alertClass = "red";
+        } else if (data.price >= 20) {
+            alertClass = "yellow";
+        }
+    }
+
+    if (id === "tnx") {
+        if (data.price > 4.5) {
+            alertClass = "red";
+        } else if (data.price >= 4.0) {
+            alertClass = "yellow";
+        }
+    }
+
+    if (id === "wti") {
+        if (data.price >= 100) {
+            alertClass = "red";
+        } else if (data.price >= 90) {
+            alertClass = "yellow";
+        }
+    }
+
+    if (alertClass) {
+        dot.classList.add(alertClass);
+    }
+}
+
+function getFinvizColor(changePct) {
+
+    const intensity = Math.min(
+        Math.abs(changePct) / 3,
+        1
+    );
+
+    const start = [35, 40, 46];
+
+    const end = changePct >= 0
+        ? [25, 190, 85]
+        : [220, 55, 55];
+
+    const rgb = start.map((value, i) =>
+        Math.round(
+            value + (end[i] - value) * intensity
+        )
+    );
+
+    return `rgb(${rgb.join(",")})`;
+}
+
 function updateFinvizCard(id, data, options = {}) {
 
     const card =
@@ -3700,7 +3800,10 @@ function updateFinvizCard(id, data, options = {}) {
 
     if (!card || !priceEl || !changeEl) return;
 
+    updateFinvizAlertDot(id, data);
+
     card.classList.remove("positive", "negative");
+    card.style.backgroundColor = "#181b21";
 
     if (!data || !Number.isFinite(data.price)) {
         priceEl.textContent = "--";
@@ -3735,10 +3838,16 @@ function updateFinvizCard(id, data, options = {}) {
 
     changeEl.textContent = changeText;
 
-    if (data.change > 0) {
-        card.classList.add("positive");
-    } else if (data.change < 0) {
-        card.classList.add("negative");
+    if (Number.isFinite(data.changePct)) {
+
+        if (data.changePct > 0) {
+            card.classList.add("positive");
+        } else if (data.changePct < 0) {
+            card.classList.add("negative");
+        }
+
+        card.style.backgroundColor =
+            getFinvizColor(data.changePct);
     }
 }
 
