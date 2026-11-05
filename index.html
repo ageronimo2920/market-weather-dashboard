@@ -1193,8 +1193,12 @@ body.finviz-mode .page-header {
     white-space: nowrap;
 }
 
+.finviz-price.stale {
+    color: #d6ad55;
+}
+
 .finviz-change {
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 600;
     margin-top: 5px;
     white-space: nowrap;
@@ -1718,6 +1722,35 @@ body.finviz-mode .page-header {
 
     </div>
 
+<div class="finviz-section">
+
+        <h2>MACRO</h2>
+
+        <div class="finviz-grid finviz-grid-three">
+
+            <div class="finviz-card" id="finviz-tnx">
+               <div class="finviz-name">10-YEAR YIELD <span id="finviz-tnx-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-price" id="finviz-tnx-price">--</div>
+                <div class="finviz-change" id="finviz-tnx-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-wti">
+                <div class="finviz-name">WTI CRUDE <span id="finviz-wti-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-price" id="finviz-wti-price">--</div>
+                <div class="finviz-change" id="finviz-wti-change">--</div>
+            </div>
+
+            <div class="finviz-card" id="finviz-vix">
+                <div class="finviz-name">VIX <span id="finviz-vix-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-price" id="finviz-vix-price">--</div>
+                <div class="finviz-change" id="finviz-vix-change">--</div>
+            </div>
+
+        </div>
+
+    </div>
+
+
     <div class="finviz-section">
 
         <h2>U.S. FUTURES</h2>
@@ -1752,33 +1785,6 @@ body.finviz-mode .page-header {
 
     </div>
 
-<div class="finviz-section">
-
-        <h2>MACRO</h2>
-
-        <div class="finviz-grid finviz-grid-three">
-
-            <div class="finviz-card" id="finviz-tnx">
-               <div class="finviz-name">10-YEAR YIELD <span id="finviz-tnx-dot" class="finviz-alert-dot"></span></div>
-                <div class="finviz-price" id="finviz-tnx-price">--</div>
-                <div class="finviz-change" id="finviz-tnx-change">--</div>
-            </div>
-
-            <div class="finviz-card" id="finviz-wti">
-                <div class="finviz-name">WTI CRUDE <span id="finviz-wti-dot" class="finviz-alert-dot"></span></div>
-                <div class="finviz-price" id="finviz-wti-price">--</div>
-                <div class="finviz-change" id="finviz-wti-change">--</div>
-            </div>
-
-            <div class="finviz-card" id="finviz-vix">
-                <div class="finviz-name">VIX <span id="finviz-vix-dot" class="finviz-alert-dot"></span></div>
-                <div class="finviz-price" id="finviz-vix-price">--</div>
-                <div class="finviz-change" id="finviz-vix-change">--</div>
-            </div>
-
-        </div>
-
-    </div>
 
 
     <div class="finviz-section">
@@ -2780,6 +2786,10 @@ function setView(view) {
 }
 
 
+/* =========================================================
+   VIEW BUTTON LISTENERS
+   ========================================================= */
+
 fullViewButton.addEventListener(
     "click",
     () => setView("full")
@@ -2795,6 +2805,117 @@ overviewButton.addEventListener(
     () => setView("overview")
 );
 
+
+/* =========================================================
+   MOBILE SWIPE NAVIGATION
+   ========================================================= */
+
+let touchStartX = null;
+let touchStartY = null;
+
+document.addEventListener(
+    "touchstart",
+    function(e) {
+
+        if (e.touches.length !== 1) {
+            touchStartX = null;
+            touchStartY = null;
+            return;
+        }
+
+        touchStartX =
+            e.touches[0].clientX;
+
+        touchStartY =
+            e.touches[0].clientY;
+
+    },
+    { passive: true }
+);
+
+
+document.addEventListener(
+    "touchend",
+    function(e) {
+
+        if (touchStartX === null) return;
+
+        const touchEndX =
+            e.changedTouches[0].clientX;
+
+        const touchEndY =
+            e.changedTouches[0].clientY;
+
+        const diffX =
+            touchEndX - touchStartX;
+
+        const diffY =
+            touchEndY - touchStartY;
+
+        touchStartX = null;
+        touchStartY = null;
+
+
+        // Ignore vertical scrolling and short movements
+
+        if (
+            Math.abs(diffX) < 75 ||
+            Math.abs(diffX) < Math.abs(diffY) * 1.3
+        ) {
+            return;
+        }
+
+
+        // Determine current view
+
+        const currentView =
+            document.body.classList.contains("overview-mode")
+                ? "overview"
+                : document.body.classList.contains("finviz-mode")
+                    ? "finviz"
+                    : "full";
+
+
+        // Keep navigation in the same order as the buttons
+
+        const views = [
+            "full",
+            "finviz",
+            "overview"
+        ];
+
+        const currentIndex =
+            views.indexOf(currentView);
+
+
+        // Swipe left = next view
+
+        if (
+            diffX < 0 &&
+            currentIndex < views.length - 1
+        ) {
+
+            setView(
+                views[currentIndex + 1]
+            );
+        }
+
+
+        // Swipe right = previous view
+
+        if (
+            diffX > 0 &&
+            currentIndex > 0
+        ) {
+
+            setView(
+                views[currentIndex - 1]
+            );
+        }
+
+    },
+    { passive: true }
+);
 
 /* =========================================================
    MARKET DATA
@@ -3745,6 +3866,7 @@ function updateMarketCard(
         );
     }
 }
+
 /* =========================================================
    FINVIZ CARD UPDATE
    ========================================================= */
@@ -3836,14 +3958,9 @@ function getFinvizColor(changePct) {
 
 function updateFinvizCard(id, data, options = {}) {
 
-    const card =
-        document.getElementById(`finviz-${id}`);
-
-    const priceEl =
-        document.getElementById(`finviz-${id}-price`);
-
-    const changeEl =
-        document.getElementById(`finviz-${id}-change`);
+    const card = document.getElementById(`finviz-${id}`);
+    const priceEl = document.getElementById(`finviz-${id}-price`);
+    const changeEl = document.getElementById(`finviz-${id}-change`);
 
     if (!card || !priceEl || !changeEl) return;
 
@@ -3852,11 +3969,16 @@ function updateFinvizCard(id, data, options = {}) {
     card.classList.remove("positive", "negative");
     card.style.backgroundColor = "#181b21";
 
+    // Reset stale color before checking the new quote
+    priceEl.classList.remove("stale");
+
     if (!data || !Number.isFinite(data.price)) {
         priceEl.textContent = "--";
         changeEl.textContent = "--";
         return;
     }
+
+    // PRICE
 
     let priceText;
 
@@ -3870,8 +3992,27 @@ function updateFinvizCard(id, data, options = {}) {
 
     priceEl.textContent = priceText;
 
-    const direction =
-        data.change >= 0 ? "+" : "";
+    // STALE DATA — SAME RULE AS FULL VIEW
+
+    const timestamp =
+        data.marketTimestamp ||
+        data.pulledAt;
+
+    const timestampMs =
+        timestamp ? new Date(timestamp).getTime() : NaN;
+
+    const age =
+        Date.now() - timestampMs;
+
+    priceEl.classList.toggle(
+        "stale",
+        Number.isFinite(timestampMs) &&
+        age >= 20 * 60 * 1000
+    );
+
+    // DAILY CHANGE
+
+    const direction = data.change >= 0 ? "+" : "";
 
     let changeText;
 
@@ -3885,6 +4026,8 @@ function updateFinvizCard(id, data, options = {}) {
 
     changeEl.textContent = changeText;
 
+    // CARD BACKGROUND
+
     if (Number.isFinite(data.changePct)) {
 
         if (data.changePct > 0) {
@@ -3897,7 +4040,6 @@ function updateFinvizCard(id, data, options = {}) {
             getFinvizColor(data.changePct);
     }
 }
-
 function updateSP500High(data) {
 
     const el =
