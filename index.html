@@ -93,6 +93,34 @@ h2 {
     vertical-align: 2px;
 }
 
+.market-condition-banner {
+    display: inline-block;
+    margin-left: 9px;
+    padding: 3px 7px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    vertical-align: 2px;
+}
+
+.market-condition-banner:empty {
+    display: none;
+}
+
+.market-condition-banner.rally {
+    color: #59c98b;
+}
+
+.market-condition-banner.weakness {
+    color: #d6ad55;
+}
+
+.market-condition-banner.deep-pullback {
+    color: #ef7373;
+}
 
 .market-pulse-joke {
     display: inline-block;
@@ -182,6 +210,19 @@ h2 {
     margin-bottom: 7px;
 }
 
+.market-name span[id$="-condition"]:not(:empty) {
+    display: inline-block;
+    margin-left: 7px;
+    padding: 2px 5px;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 4px;
+    font-size: 0.72em;
+    font-weight: 700;
+    line-height: 1.2;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
 .market-price {
     font-size: 25px;
     font-weight: 700;
@@ -214,6 +255,11 @@ h2 {
 }
 
 .market-updated.stale {
+    color: #d6ad55;
+}
+
+.market-card .market-price.stale,
+.market-card .market-change.stale {
     color: #d6ad55;
 }
 
@@ -1167,24 +1213,17 @@ body.finviz-mode .page-header {
     margin-bottom: 8px;
 }
 
-.finviz-alert-dot {
-    display: none;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    margin-left: 6px;
+.finviz-name span[id$="-condition"]:not(:empty) {
+    display: inline-block;
+    margin-left: 7px;
+    padding: 2px 5px;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    border-radius: 4px;
+    font-size: 0.72em;
+    font-weight: 700;
+    line-height: 1.2;
     vertical-align: middle;
-    border: 1px solid #20252b;
-}
-
-.finviz-alert-dot.yellow {
-    display: inline-block;
-    background: #f0c34e;
-}
-
-.finviz-alert-dot.red {
-    display: inline-block;
-    background: #ef7373;
+    white-space: nowrap;
 }
 
 .finviz-price {
@@ -1194,6 +1233,10 @@ body.finviz-mode .page-header {
 }
 
 .finviz-price.stale {
+    color: #d6ad55;
+}
+
+.finviz-change.stale {
     color: #d6ad55;
 }
 
@@ -1681,10 +1724,16 @@ body.finviz-mode .page-header {
         <h2>MARKET PULSE</h2>
 
         <div class="finviz-pulse-bar">
-            <span id="finviz-pulse-dot">⚪</span>
-            <span id="finviz-pulse-label">Loading...</span>
-            <span id="finviz-countdown"></span>
-        </div>
+    <span id="finviz-pulse-dot">⚪</span>
+    <span id="finviz-pulse-label">Loading...</span>
+
+    <span
+        id="finviz-market-condition-banner"
+        class="market-condition-banner"
+    ></span>
+
+    <span id="finviz-countdown"></span>
+</div>
 
     </div>
 
@@ -1695,25 +1744,25 @@ body.finviz-mode .page-header {
         <div class="finviz-grid" id="finviz-index-grid">
 
             <div class="finviz-card" id="finviz-sp500">
-                <div class="finviz-name">S&amp;P 500 <span id="finviz-sp500-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-name">S&amp;P 500 <span id="finviz-sp500-condition"></span></div>
                 <div class="finviz-price" id="finviz-sp500-price">--</div>
                 <div class="finviz-change" id="finviz-sp500-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-nasdaq">
-                <div class="finviz-name">NASDAQ <span id="finviz-nasdaq-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-name">NASDAQ <span id="finviz-nasdaq-condition"></span></div>
                 <div class="finviz-price" id="finviz-nasdaq-price">--</div>
                 <div class="finviz-change" id="finviz-nasdaq-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-russell">
-                <div class="finviz-name">RUSSELL 2000 <span id="finviz-russell-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-name">RUSSELL 2000 <span id="finviz-russell-condition"></span></div>
                 <div class="finviz-price" id="finviz-russell-price">--</div>
                 <div class="finviz-change" id="finviz-russell-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-dow">
-                <div class="finviz-name">DOW <span id="finviz-dow-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-name">DOW <span id="finviz-dow-condition"></span></div>
                 <div class="finviz-price" id="finviz-dow-price">--</div>
                 <div class="finviz-change" id="finviz-dow-change">--</div>
             </div>
@@ -1729,19 +1778,19 @@ body.finviz-mode .page-header {
         <div class="finviz-grid finviz-grid-three">
 
             <div class="finviz-card" id="finviz-tnx">
-               <div class="finviz-name">10-YEAR YIELD <span id="finviz-tnx-dot" class="finviz-alert-dot"></span></div>
+               <div class="finviz-name">10-YEAR YIELD <span id="finviz-tnx-condition"></span></div>
                 <div class="finviz-price" id="finviz-tnx-price">--</div>
                 <div class="finviz-change" id="finviz-tnx-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-wti">
-                <div class="finviz-name">WTI CRUDE <span id="finviz-wti-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-name">WTI CRUDE <span id="finviz-wti-condition"></span></div>
                 <div class="finviz-price" id="finviz-wti-price">--</div>
                 <div class="finviz-change" id="finviz-wti-change">--</div>
             </div>
 
             <div class="finviz-card" id="finviz-vix">
-                <div class="finviz-name">VIX <span id="finviz-vix-dot" class="finviz-alert-dot"></span></div>
+                <div class="finviz-name">VIX <span id="finviz-vix-condition"></span></div>
                 <div class="finviz-price" id="finviz-vix-price">--</div>
                 <div class="finviz-change" id="finviz-vix-change">--</div>
             </div>
@@ -1824,29 +1873,38 @@ body.finviz-mode .page-header {
 
             
 	<h2>
-            MARKET
-            <span
-                id="market-pulse-dot"
-                class="market-pulse-dot"
-                aria-label="Market Pulse status"
-            >⚪</span>
-            <span
-		id="market-countdown"
-		class="market-countdown"
-	    ></span>
-	    <span
-                id="market-pulse-joke"
-                class="market-pulse-joke"
-            ></span>
-        </h2>
+    MARKET
+
+    <span
+        id="market-pulse-dot"
+        class="market-pulse-dot"
+        aria-label="Market Pulse status"
+    >⚪</span>
+
+    <span
+        id="market-condition-banner"
+        class="market-condition-banner"
+    ></span>
+
+    <span
+        id="market-countdown"
+        class="market-countdown"
+    ></span>
+
+    <span
+        id="market-pulse-joke"
+        class="market-pulse-joke"
+    ></span>
+</h2>
 
             <div class="main-market-grid">
 
                 <div class="card market-card">
 
                     <div class="market-name">
-                        S&amp;P 500
-                    </div>
+    			S&amp;P 500
+    			<span id="sp500-condition"></span>
+		    </div>
 
                     <div
                         class="market-price"
@@ -1898,6 +1956,7 @@ body.finviz-mode .page-header {
 
                     <div class="market-name">
                         Nasdaq
+			<span id="nasdaq-condition"></span>
                     </div>
 
                     <div
@@ -1950,6 +2009,7 @@ body.finviz-mode .page-header {
 
                     <div class="market-name">
                         Russell 2000
+			<span id="russell-condition"></span>
                     </div>
 
                     <div
@@ -2004,6 +2064,7 @@ body.finviz-mode .page-header {
 
     <div class="market-name">
         Dow Jones
+	<span id="dow-condition"></span>
     </div>
 
     <div
@@ -2230,6 +2291,7 @@ body.finviz-mode .page-header {
 
                     <div class="market-name">
                         U.S. 10-Year
+			<span id="tnx-condition"></span>
                     </div>
 
                     <div
@@ -2267,6 +2329,7 @@ body.finviz-mode .page-header {
 
                     <div class="market-name">
                         WTI Crude
+			<span id="wti-condition"></span>
                     </div>
 
                     <div
@@ -2303,6 +2366,7 @@ body.finviz-mode .page-header {
 
     <div class="market-name">
         VIX
+	<span id="vix-condition"></span>
     </div>
 
     <div
@@ -3691,41 +3755,54 @@ function getMarketStatus(symbol) {
 }
 
 function updateMarketLevelIndicator(id, price) {
-    const priceEl = document.getElementById(`${id}-price`);
-    if (!priceEl) return;
 
-    priceEl.classList.remove(
-        "level-alert-yellow",
-        "level-alert-red"
-    );
+    const conditionEl =
+        document.getElementById(`${id}-condition`);
 
-    if (!Number.isFinite(price)) return;
+    const priceEl =
+        document.getElementById(`${id}-price`);
 
-    let alertClass = "";
+    if (priceEl) {
+        priceEl.classList.remove(
+            "level-alert-yellow",
+            "level-alert-red"
+        );
+    }
 
-    if (id === "vix") {
-        if (price > 30) {
-            alertClass = "level-alert-red";
-        } else if (price >= 20) {
-            alertClass = "level-alert-yellow";
-        }
-    } else if (id === "tnx") {
-        if (price > 4.5) {
-            alertClass = "level-alert-red";
-        } else if (price >= 4.0) {
-            alertClass = "level-alert-yellow";
-        }
-    } else if (id === "wti") {
-        if (price >= 100) {
-            alertClass = "level-alert-red";
-        } else if (price >= 90) {
-            alertClass = "level-alert-yellow";
+    if (!conditionEl) return;
+
+    let label = "";
+
+    if (Number.isFinite(price)) {
+
+        if (id === "vix") {
+
+            if (price >= 30) {
+                label = "HIGH";
+            } else if (price >= 20) {
+                label = "ELEVATED";
+            }
+
+        } else if (id === "tnx") {
+
+            if (price >= 4.5) {
+                label = "HIGH";
+            } else if (price >= 4.0) {
+                label = "ELEVATED";
+            }
+
+        } else if (id === "wti") {
+
+            if (price >= 100) {
+                label = "HIGH";
+            } else if (price >= 90) {
+                label = "ELEVATED";
+            }
         }
     }
 
-    if (alertClass) {
-        priceEl.classList.add(alertClass);
-    }
+    conditionEl.textContent = label;
+    
 }
 
 function updateMarketCard(
@@ -3756,6 +3833,9 @@ function updateMarketCard(
         updateMarketLevelIndicator(id, NaN);
 
         changeEl.textContent = "--";
+	
+	priceEl.classList.remove("stale");
+        changeEl.classList.remove("stale");
 
         if (cardEl) {
             cardEl.style.backgroundColor = "#181b21";
@@ -3818,6 +3898,25 @@ function updateMarketCard(
                     : ""
         );
 
+// STALE DATA — 20 MINUTES
+
+const timestamp =
+    data.marketTimestamp ||
+    data.pulledAt;
+
+const timestampMs =
+    timestamp ? new Date(timestamp).getTime() : NaN;
+
+const age =
+    Date.now() - timestampMs;
+
+const isStale =
+    Number.isFinite(timestampMs) &&
+    age >= 20 * 60 * 1000;
+
+priceEl.classList.toggle("stale", isStale);
+changeEl.classList.toggle("stale", isStale);
+
     // FULL VIEW CARD GRADIENT
 
     if (
@@ -3846,23 +3945,12 @@ function updateMarketCard(
 
     if (updatedEl) {
 
-        const timestamp =
-            data.marketTimestamp ||
-            data.pulledAt;
-
         updatedEl.textContent =
             `Updated ${formatMarketTimestamp(timestamp)}`;
 
-        const timestampMs =
-            timestamp ? new Date(timestamp).getTime() : NaN;
-
-        const age =
-            Date.now() - timestampMs;
-
         updatedEl.classList.toggle(
             "stale",
-            Number.isFinite(timestampMs) &&
-            age >= 20 * 60 * 1000
+            isStale
         );
     }
 }
@@ -3871,18 +3959,19 @@ function updateMarketCard(
    FINVIZ CARD UPDATE
    ========================================================= */
 
-function updateFinvizAlertDot(id, data) {
+function updateFinvizConditionLabel(id, data) {
 
-    const dot =
-        document.getElementById(`finviz-${id}-dot`);
+    const conditionEl =
+        document.getElementById(`finviz-${id}-condition`);
 
-    if (!dot) return;
+    if (!conditionEl) return;
 
-    dot.className = "finviz-alert-dot";
+    let label = "";
 
-    if (!data || !Number.isFinite(data.price)) return;
-
-    let alertClass = "";
+    if (!data || !Number.isFinite(data.price)) {
+        conditionEl.textContent = "";
+        return;
+    }
 
     // INDEX 52-WEEK PULLBACKS
 
@@ -3897,42 +3986,45 @@ function updateFinvizAlertDot(id, data) {
                 data.fiftyTwoWeekHigh) * 100;
 
         if (distance >= 10) {
-            alertClass = "red";
+            label = "DEEP PULLBACK";
         } else if (distance >= 5) {
-            alertClass = "yellow";
+            label = "PULLBACK";
         }
     }
 
-    // MACRO WARNINGS
+    // VIX
 
     if (id === "vix") {
-        if (data.price > 30) {
-            alertClass = "red";
+        if (data.price >= 30) {
+            label = "HIGH";
         } else if (data.price >= 20) {
-            alertClass = "yellow";
+            label = "ELEVATED";
         }
     }
 
+    // 10-YEAR YIELD
+
     if (id === "tnx") {
-        if (data.price > 4.5) {
-            alertClass = "red";
+        if (data.price >= 4.5) {
+            label = "HIGH";
         } else if (data.price >= 4.0) {
-            alertClass = "yellow";
+            label = "ELEVATED";
         }
     }
+
+    // WTI CRUDE
 
     if (id === "wti") {
         if (data.price >= 100) {
-            alertClass = "red";
+            label = "HIGH";
         } else if (data.price >= 90) {
-            alertClass = "yellow";
+            label = "ELEVATED";
         }
     }
 
-    if (alertClass) {
-        dot.classList.add(alertClass);
-    }
+    conditionEl.textContent = label;
 }
+
 
 function getFinvizColor(changePct) {
 
@@ -3964,17 +4056,20 @@ function updateFinvizCard(id, data, options = {}) {
 
     if (!card || !priceEl || !changeEl) return;
 
-    updateFinvizAlertDot(id, data);
+    updateFinvizConditionLabel(id, data);
 
     card.classList.remove("positive", "negative");
     card.style.backgroundColor = "#181b21";
 
     // Reset stale color before checking the new quote
     priceEl.classList.remove("stale");
+    changeEl.classList.remove("stale");
 
     if (!data || !Number.isFinite(data.price)) {
         priceEl.textContent = "--";
         changeEl.textContent = "--";
+	priceEl.classList.remove("stale");
+        changeEl.classList.remove("stale");
         return;
     }
 
@@ -4004,11 +4099,12 @@ function updateFinvizCard(id, data, options = {}) {
     const age =
         Date.now() - timestampMs;
 
-    priceEl.classList.toggle(
-        "stale",
+    const isStale =
         Number.isFinite(timestampMs) &&
-        age >= 20 * 60 * 1000
-    );
+        age >= 20 * 60 * 1000;
+
+    priceEl.classList.toggle("stale", isStale);
+    changeEl.classList.toggle("stale", isStale);
 
     // DAILY CHANGE
 
@@ -4040,27 +4136,20 @@ function updateFinvizCard(id, data, options = {}) {
             getFinvizColor(data.changePct);
     }
 }
+
 function updateSP500High(data) {
 
     const el =
-        document.getElementById(
-            "sp500-high"
-        );
+        document.getElementById("sp500-high");
 
     const lowEl =
-        document.getElementById(
-            "sp500-low"
-        );
+        document.getElementById("sp500-low");
 
     const overviewEl =
-        document.getElementById(
-            "overview-sp500-high"
-        );
+        document.getElementById("overview-sp500-high");
 
     const overviewLowEl =
-        document.getElementById(
-            "overview-sp500-low"
-        );
+        document.getElementById("overview-sp500-low");
 
     const distEl =
         document.getElementById("sp500-dist");
@@ -4068,30 +4157,28 @@ function updateSP500High(data) {
     const overviewDistEl =
         document.getElementById("overview-sp500-dist");
 
+    const conditionEl =
+        document.getElementById("sp500-condition");
+
+
+    /* 52W HIGH */
+
     if (
         data &&
-        typeof data.fiftyTwoWeekHigh ===
-            "number"
+        typeof data.fiftyTwoWeekHigh === "number"
     ) {
 
         const hit =
-            typeof data.dayHigh ===
-                "number" &&
-            data.dayHigh >=
-                data.fiftyTwoWeekHigh -
-                0.01;
+            typeof data.dayHigh === "number" &&
+            data.dayHigh >= data.fiftyTwoWeekHigh - 0.01;
 
         const text =
             `52W High ${formatNumber(data.fiftyTwoWeekHigh)}${hit ? " ✓" : ""}`;
 
-        el.textContent =
-            text;
+        if (el) el.textContent = text;
 
         if (overviewEl) {
-
-            overviewEl.textContent =
-                text;
-
+            overviewEl.textContent = text;
             overviewEl.className =
                 hit
                     ? "overview-market-high positive"
@@ -4100,50 +4187,39 @@ function updateSP500High(data) {
 
     } else {
 
-        el.textContent =
-            "52W High --";
+        if (el) el.textContent = "52W High --";
 
         if (overviewEl) {
-
-            overviewEl.textContent =
-                "52W High --";
-
-            overviewEl.className =
-                "overview-market-high";
+            overviewEl.textContent = "52W High --";
+            overviewEl.className = "overview-market-high";
         }
     }
 
+
+    /* 52W LOW */
+
     if (
         data &&
-        typeof data.fiftyTwoWeekLow ===
-            "number"
+        typeof data.fiftyTwoWeekLow === "number"
     ) {
 
         const lowText =
             `52W Low ${formatNumber(data.fiftyTwoWeekLow)}`;
 
-        if (lowEl) {
-            lowEl.textContent =
-                lowText;
-        }
-
-        if (overviewLowEl) {
-            overviewLowEl.textContent =
-                lowText;
-        }
+        if (lowEl) lowEl.textContent = lowText;
+        if (overviewLowEl) overviewLowEl.textContent = lowText;
 
     } else {
 
-        if (lowEl) {
-            lowEl.textContent =
-                "52W Low --";
-        }
-
-        if (overviewLowEl) {
-            overviewLowEl.textContent =
-                "52W Low --";
-        }
+        if (lowEl) lowEl.textContent = "52W Low --";
+        if (overviewLowEl) overviewLowEl.textContent = "52W Low --";
     }
+
+
+    /* 52W DISTANCE + CONDITION */
+
+    let distance = null;
+
     if (
         data &&
         typeof data.price === "number" &&
@@ -4151,40 +4227,43 @@ function updateSP500High(data) {
         data.fiftyTwoWeekHigh > 0
     ) {
 
-        const distance =
-            (
-                (data.fiftyTwoWeekHigh - data.price) /
-                data.fiftyTwoWeekHigh
-            ) * 100;
-
-        
-const distText =
-    `52W Dist. ${distance.toFixed(2)}%`;
-
-if (distEl) {
-    distEl.textContent = distText;
-    distEl.classList.remove(
-        "pullback-yellow",
-        "pullback-red"
-    );
-
-    if (distance >= 10) {
-        distEl.classList.add("pullback-red");
-    } else if (distance >= 5) {
-        distEl.classList.add("pullback-yellow");
+        distance =
+            ((data.fiftyTwoWeekHigh - data.price) /
+                data.fiftyTwoWeekHigh) * 100;
     }
-}
 
+    if (distEl) {
+        distEl.textContent =
+            distance !== null
+                ? `52W Dist. ${distance.toFixed(2)}%`
+                : "52W Dist. --";
 
-    } else {
+        distEl.classList.remove(
+            "pullback-yellow",
+            "pullback-red"
+        );
+    }
 
-        if (distEl) {
-            distEl.textContent = "52W Dist. --";
+    if (overviewDistEl) {
+        overviewDistEl.textContent =
+            distance !== null
+                ? `52W Dist. ${distance.toFixed(2)}%`
+                : "52W Dist. --";
+    }
+
+    let label = "";
+
+    if (distance !== null) {
+        if (distance >= 10) {
+            label = "DEEP PULLBACK";
+        } else if (distance >= 5) {
+            label = "PULLBACK";
         }
+    }
 
-        if (overviewDistEl) {
-            overviewDistEl.textContent = "52W Dist. --";
-        }
+    if (conditionEl) {
+	conditionEl.textContent = label;
+        
     }
 }
 
@@ -4197,19 +4276,33 @@ function update52WeekMetrics(data, prefix) {
     const distEl =
         document.getElementById(prefix + "-dist");
 
+    const conditionEl =
+        document.getElementById(prefix + "-condition");
+
+
+    /* 52W HIGH */
+
     if (
         data &&
         typeof data.fiftyTwoWeekHigh === "number"
     ) {
+
         if (highEl) {
             highEl.textContent =
                 `52W High ${formatNumber(data.fiftyTwoWeekHigh)}`;
         }
+
     } else {
+
         if (highEl) {
             highEl.textContent = "52W High --";
         }
     }
+
+
+    /* 52W DISTANCE + CONDITION */
+
+    let distance = null;
 
     if (
         data &&
@@ -4217,38 +4310,39 @@ function update52WeekMetrics(data, prefix) {
         typeof data.fiftyTwoWeekHigh === "number" &&
         data.fiftyTwoWeekHigh > 0
     ) {
-        const distance =
+
+        distance =
             ((data.fiftyTwoWeekHigh - data.price) /
                 data.fiftyTwoWeekHigh) * 100;
-
-        
-if (distEl) {
-    distEl.textContent =
-        `52W Dist. ${distance.toFixed(2)}%`;
-
-    distEl.classList.remove(
-        "pullback-yellow",
-        "pullback-red"
-    );
-
-    if (distance >= 10) {
-        distEl.classList.add("pullback-red");
-    } else if (distance >= 5) {
-        distEl.classList.add("pullback-yellow");
     }
-}
 
-    
-} else {
     if (distEl) {
-        distEl.textContent = "52W Dist. --";
+
+        distEl.textContent =
+            distance !== null
+                ? `52W Dist. ${distance.toFixed(2)}%`
+                : "52W Dist. --";
+
         distEl.classList.remove(
             "pullback-yellow",
             "pullback-red"
         );
     }
-}
 
+    let label = "";
+
+    if (distance !== null) {
+        if (distance >= 10) {
+            label = "DEEP PULLBACK";
+        } else if (distance >= 5) {
+            label = "PULLBACK";
+        }
+    }
+
+    if (conditionEl) {
+	conditionEl.textContent = label;
+        
+    }
 }
 
 /* =========================================================
@@ -4622,7 +4716,135 @@ document.getElementById(
         description;
 }
 
+/* =========================================================
+   OVERALL MARKET CONDITION BANNER
+   ========================================================= */
 
+function updateMarketConditionBanner(
+    sp500,
+    nasdaq,
+    russell,
+    dow
+) {
+
+    const bannerElements = [
+        document.getElementById("market-condition-banner"),
+        document.getElementById("finviz-market-condition-banner")
+    ].filter(Boolean);
+
+    if (!bannerElements.length) return;
+
+    function setBanner(text, className = "") {
+
+        bannerElements.forEach(bannerEl => {
+
+            bannerEl.textContent = text;
+            bannerEl.className = "market-condition-banner";
+
+            if (className) {
+                bannerEl.classList.add(className);
+            }
+
+        });
+    }
+
+    // Reset both banners
+    setBanner("");
+
+    const indexes = [
+        sp500,
+        nasdaq,
+        russell,
+        dow
+    ];
+
+    // Require all four daily quotes
+    if (
+        indexes.some(
+            data =>
+                !data ||
+                !Number.isFinite(data.price) ||
+                !Number.isFinite(data.changePct)
+        )
+    ) {
+        return;
+    }
+
+    // Calculate distance from each 52-week high
+    const distances = indexes.map(data => {
+
+        if (
+            !Number.isFinite(data.fiftyTwoWeekHigh) ||
+            data.fiftyTwoWeekHigh <= 0
+        ) {
+            return null;
+        }
+
+        return (
+            (data.fiftyTwoWeekHigh - data.price) /
+            data.fiftyTwoWeekHigh
+        ) * 100;
+    });
+
+    const validDistances =
+        distances.every(
+            value => Number.isFinite(value)
+        );
+
+    if (validDistances) {
+
+        const deepPullbacks =
+            distances.filter(
+                value => value >= 10
+            ).length;
+
+        const pullbacks =
+            distances.filter(
+                value => value >= 5
+            ).length;
+
+        if (deepPullbacks >= 3) {
+
+            setBanner(
+                "DEEP MARKET PULLBACK",
+                "deep-pullback"
+            );
+
+            return;
+        }
+
+        if (pullbacks >= 3) {
+
+            setBanner(
+                "BROAD MARKET WEAKNESS",
+                "weakness"
+            );
+
+            return;
+        }
+    }
+
+    // Count indexes advancing today
+    const advancing =
+        indexes.filter(
+            data => data.changePct > 0
+        ).length;
+
+    if (advancing === 4) {
+
+        setBanner(
+            "BROAD MARKET RALLY",
+            "rally"
+        );
+
+    } else if (advancing >= 3) {
+
+        setBanner(
+            "MARKET ADVANCING",
+            "rally"
+        );
+    }
+}
 
 /* =========================================================
    MARKET UPDATE
@@ -4666,6 +4888,12 @@ async function updateMarkets() {
 
     sp500LatestQuote = sp500;
 
+    updateMarketConditionBanner(
+        sp500,
+        nasdaq,
+        russell,
+        dow
+    );
 
     /* Full View */
 
