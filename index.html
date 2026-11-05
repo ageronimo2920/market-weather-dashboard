@@ -403,9 +403,12 @@ h2 {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #272c34;
+    margin-top: 0;
+    margin-bottom: 9px;
+    padding-top: 0;
+    padding-bottom: 8px;
+    border-top: none;
+    border-bottom: 1px solid #272c34;
 }
 
 .sp500-return {
@@ -1732,6 +1735,11 @@ body.finviz-mode .page-header {
         class="market-condition-banner"
     ></span>
 
+    <span
+        id="finviz-intraday-alert-banner"
+        class="market-condition-banner"
+    ></span>
+
     <span id="finviz-countdown"></span>
 </div>
 
@@ -1883,6 +1891,11 @@ body.finviz-mode .page-header {
 
     <span
         id="market-condition-banner"
+        class="market-condition-banner"
+    ></span>
+
+    <span
+        id="intraday-alert-banner"
         class="market-condition-banner"
     ></span>
 
@@ -2139,37 +2152,6 @@ body.finviz-mode .page-header {
 
                 </div>
 
-
-                <div class="chart-wrap">
-
-                    <canvas id="sp500-chart"></canvas>
-
-                    <div
-                        class="chart-loading"
-                        id="chart-loading"
-                    >
-                        Loading chart...
-                    </div>
-
-                </div>
-
-
-                <div class="chart-footer">
-
-                    <span id="chart-start">
-                        9:30 AM
-                    </span>
-
-                    <span>
-                        5 min
-                    </span>
-
-                    <span id="chart-end">
-                        4:00 PM
-                    </span>
-
-                </div>
-
                 <div class="sp500-returns">
 
                     <div class="sp500-return">
@@ -2206,6 +2188,40 @@ body.finviz-mode .page-header {
                         <div class="sp500-return-label">1Y</div>
                         <div class="sp500-return-value" id="sp500-return-1y">--</div>
                     </div>
+
+	</div>
+
+                <div class="chart-wrap">
+
+                    <canvas id="sp500-chart"></canvas>
+
+                    <div
+                        class="chart-loading"
+                        id="chart-loading"
+                    >
+                        Loading chart...
+                    </div>
+
+                </div>
+
+
+                <div class="chart-footer">
+
+                    <span id="chart-start">
+                        9:30 AM
+                    </span>
+
+                    <span>
+                        5 min
+                    </span>
+
+                    <span id="chart-end">
+                        4:00 PM
+                    </span>
+
+                </div>
+
+
 
                 </div>
 
@@ -4717,7 +4733,7 @@ document.getElementById(
 }
 
 /* =========================================================
-   OVERALL MARKET CONDITION BANNER
+   OVERALL MARKET CONDITION + INTRADAY ALERTS
    ========================================================= */
 
 function updateMarketConditionBanner(
@@ -4732,11 +4748,14 @@ function updateMarketConditionBanner(
         document.getElementById("finviz-market-condition-banner")
     ].filter(Boolean);
 
-    if (!bannerElements.length) return;
+    const intradayElements = [
+        document.getElementById("intraday-alert-banner"),
+        document.getElementById("finviz-intraday-alert-banner")
+    ].filter(Boolean);
 
-    function setBanner(text, className = "") {
+    function setBanner(elements, text, className = "") {
 
-        bannerElements.forEach(bannerEl => {
+        elements.forEach(bannerEl => {
 
             bannerEl.textContent = text;
             bannerEl.className = "market-condition-banner";
@@ -4748,8 +4767,9 @@ function updateMarketConditionBanner(
         });
     }
 
-    // Reset both banners
-    setBanner("");
+    // Reset both sets of banners
+    setBanner(bannerElements, "");
+    setBanner(intradayElements, "");
 
     const indexes = [
         sp500,
@@ -4770,7 +4790,41 @@ function updateMarketConditionBanner(
         return;
     }
 
-    // Calculate distance from each 52-week high
+    // =====================================================
+    // INTRADAY MARKET SELLOFF
+    // =====================================================
+
+    const significantSelloff =
+        indexes.filter(
+            data => data.changePct <= -2.0
+        ).length;
+
+    const severeSelloff =
+        indexes.filter(
+            data => data.changePct <= -3.5
+        ).length;
+
+    if (severeSelloff >= 3) {
+
+        setBanner(
+            intradayElements,
+            "SEVERE MARKET SELLOFF",
+            "deep-pullback"
+        );
+
+    } else if (significantSelloff >= 3) {
+
+        setBanner(
+            intradayElements,
+            "SIGNIFICANT MARKET SELLOFF",
+            "weakness"
+        );
+    }
+
+    // =====================================================
+    // 52-WEEK MARKET CONDITION
+    // =====================================================
+
     const distances = indexes.map(data => {
 
         if (
@@ -4806,6 +4860,7 @@ function updateMarketConditionBanner(
         if (deepPullbacks >= 3) {
 
             setBanner(
+                bannerElements,
                 "DEEP MARKET PULLBACK",
                 "deep-pullback"
             );
@@ -4816,6 +4871,7 @@ function updateMarketConditionBanner(
         if (pullbacks >= 3) {
 
             setBanner(
+                bannerElements,
                 "BROAD MARKET WEAKNESS",
                 "weakness"
             );
@@ -4833,6 +4889,7 @@ function updateMarketConditionBanner(
     if (advancing === 4) {
 
         setBanner(
+            bannerElements,
             "BROAD MARKET RALLY",
             "rally"
         );
@@ -4840,6 +4897,7 @@ function updateMarketConditionBanner(
     } else if (advancing >= 3) {
 
         setBanner(
+            bannerElements,
             "MARKET ADVANCING",
             "rally"
         );
@@ -5363,7 +5421,10 @@ function drawSP500Chart(candles) {
     }
 
     const slotWidth = chartWidth / 78;
-    const bodyWidth = Math.max(3, Math.min(10, slotWidth * 1.05));
+
+    const bodyWidth = window.innerWidth >= 1400
+        ? Math.min(18, slotWidth * 0.90)
+        : Math.max(3, Math.min(10, slotWidth * 1.05));
 
     visible.forEach(candle => {
         const x = timeToX(candle.time.getTime());
@@ -5536,6 +5597,7 @@ function drawOverviewSP500Chart(candles) {
     }
 
     const slotWidth = chartWidth / 78;
+
     const bodyWidth = Math.max(2, Math.min(8, slotWidth * 1.05));
 
     visible.forEach(candle => {
