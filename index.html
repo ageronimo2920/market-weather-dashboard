@@ -122,6 +122,24 @@ h2 {
     color: #ef7373;
 }
 
+.market-condition-banner.sma-bullish,
+.market-condition-banner.sma-golden {
+    color: #59c98b;
+}
+
+.market-condition-banner.sma-bearish,
+.market-condition-banner.sma-death {
+    color: #ef7373;
+}
+
+.market-condition-banner.sma-mixed {
+    color: #d6ad55;
+}
+
+.market-condition-banner.sma-neutral {
+    color: #777f89;
+}
+
 .market-pulse-joke {
     display: inline-block;
     margin-left: 8px;
@@ -407,6 +425,25 @@ h2 {
     margin-top: 10px;
     padding-top: 9px;
     border-top: 1px solid #272c34;
+}
+
+.sp500-sma-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 9px;
+}
+
+.sp500-sma-header .sp500-sma-title {
+    margin-bottom: 0;
+}
+
+.sp500-sma-status {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .sp500-sma-title {
@@ -2291,8 +2328,26 @@ body.finviz-mode .page-header {
 
 <div class="sp500-sma">
 
-    <div class="sp500-sma-title">
-        TECHNICAL INDICATORS
+    <div class="sp500-sma-header">
+
+        <div class="sp500-sma-title">
+            TECHNICAL INDICATORS
+        </div>
+
+        <div class="sp500-sma-status">
+
+            <span
+                id="sp500-sma-alignment"
+                class="market-condition-banner sma-mixed"
+            >MIXED</span>
+
+            <span
+                id="sp500-sma-cross"
+                class="market-condition-banner sma-golden"
+            >GOLDEN CROSS</span>
+
+        </div>
+
     </div>
 
     <div class="sp500-sma-grid">
@@ -6037,9 +6092,101 @@ async function updateSP500SMAs() {
             above ? "#4ade80" : "#ef7373";
     }
 
-    updateSMA(20, calculateSMA(20));
-    updateSMA(50, calculateSMA(50));
-    updateSMA(200, calculateSMA(200));
+    const sma20 = calculateSMA(20);
+    const sma50 = calculateSMA(50);
+    const sma200 = calculateSMA(200);
+
+    updateSMA(20, sma20);
+    updateSMA(50, sma50);
+    updateSMA(200, sma200);
+
+
+// =====================================================
+// SMA ALIGNMENT STATUS
+// =====================================================
+
+const alignmentElement = document.getElementById(
+    "sp500-sma-alignment"
+);
+
+const crossElement = document.getElementById(
+    "sp500-sma-cross"
+);
+
+if (alignmentElement && crossElement) {
+
+        const statusContainer = document.querySelector(
+        ".sp500-sma-status"
+    );
+
+    if (statusContainer) {
+        statusContainer.style.display = "none";
+    }
+
+    if (sma20 === null || sma50 === null || sma200 === null) {
+
+        alignmentElement.textContent = "--";
+        alignmentElement.className =
+            "market-condition-banner sma-neutral";
+
+        crossElement.textContent = "--";
+        crossElement.className =
+            "market-condition-banner sma-neutral";
+
+    } else {
+
+	  
+
+        // Overall 20 / 50 / 200 alignment.
+
+        let alignment;
+        let alignmentClass;
+
+        if (sma20 > sma50 && sma50 > sma200) {
+            alignment = "BULLISH";
+            alignmentClass = "sma-bullish";
+
+        } else if (sma20 < sma50 && sma50 < sma200) {
+            alignment = "BEARISH";
+            alignmentClass = "sma-bearish";
+
+        } else {
+            alignment = "MIXED";
+            alignmentClass = "sma-mixed";
+        }
+
+        alignmentElement.textContent = alignment;
+        alignmentElement.className =
+            `market-condition-banner ${alignmentClass}`;
+
+
+        // 50 / 200 moving average relationship.
+
+        let cross;
+        let crossClass;
+
+        if (sma50 > sma200) {
+            cross = "GOLDEN CROSS";
+            crossClass = "sma-golden";
+
+        } else if (sma50 < sma200) {
+            cross = "DEATH CROSS";
+            crossClass = "sma-death";
+
+        } else {
+            cross = "50/200 EQUAL";
+            crossClass = "sma-neutral";
+        }
+
+        crossElement.textContent = cross;
+        crossElement.className =
+            `market-condition-banner ${crossClass}`;
+
+	 if (statusContainer) {
+            statusContainer.style.display = "flex";
+        }
+    }
+}
 
 
     // =====================================================
