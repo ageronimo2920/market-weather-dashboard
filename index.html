@@ -399,6 +399,54 @@ h2 {
     color: #777f89;
 }
 
+/* =========================================================
+   S&P 500 DAILY MOVING AVERAGES
+   ========================================================= */
+
+.sp500-sma {
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px solid #272c34;
+}
+
+.sp500-sma-title {
+    color: #777f89;
+    font-size: 10px;
+    margin-bottom: 9px;
+    letter-spacing: 0.4px;
+}
+
+.sp500-sma-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.sp500-sma-item {
+    text-align: center;
+    min-width: 0;
+}
+
+.sp500-sma-label {
+    color: #777f89;
+    font-size: 10px;
+    margin-bottom: 3px;
+}
+
+.sp500-sma-value {
+    color: #e5e7eb;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.sp500-sma-distance {
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+}
+
 .sp500-returns {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -998,6 +1046,23 @@ body.finviz-mode .page-header {
 
     .overview-chart-wrap {
         height: 120px;
+    }
+
+    .sp500-sma-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        row-gap: 14px;
+    }
+
+    .sp500-sma-item:nth-child(-n+3) {
+        grid-column: span 2;
+    }
+
+    .sp500-sma-item:nth-child(4) {
+        grid-column: 2 / span 2;
+    }
+
+    .sp500-sma-item:nth-child(5) {
+        grid-column: 4 / span 2;
     }
 }
 
@@ -2222,7 +2287,49 @@ body.finviz-mode .page-header {
     
                 </div>
 
-            </div>
+<!-- TECHNICAL INDICATORS -->
+
+<div class="sp500-sma">
+
+    <div class="sp500-sma-title">
+        TECHNICAL INDICATORS
+    </div>
+
+    <div class="sp500-sma-grid">
+
+        <div class="sp500-sma-item">
+            <div class="sp500-sma-label">SMA 20</div>
+            <div class="sp500-sma-value" id="sp500-sma-20">--</div>
+            <div class="sp500-sma-distance" id="sp500-sma-20-distance">--</div>
+        </div>
+
+        <div class="sp500-sma-item">
+            <div class="sp500-sma-label">SMA 50</div>
+            <div class="sp500-sma-value" id="sp500-sma-50">--</div>
+            <div class="sp500-sma-distance" id="sp500-sma-50-distance">--</div>
+        </div>
+
+        <div class="sp500-sma-item">
+            <div class="sp500-sma-label">SMA 200</div>
+            <div class="sp500-sma-value" id="sp500-sma-200">--</div>
+            <div class="sp500-sma-distance" id="sp500-sma-200-distance">--</div>
+        </div>
+
+        <div class="sp500-sma-item">
+            <div class="sp500-sma-label">RSI 14</div>
+            <div class="sp500-sma-value" id="sp500-rsi-14">--</div>
+            <div class="sp500-sma-distance" id="sp500-rsi-14-label">--</div>
+        </div>
+
+        <div class="sp500-sma-item">
+            <div class="sp500-sma-label">ATR 14</div>
+            <div class="sp500-sma-value" id="sp500-atr-14">--</div>
+            <div class="sp500-sma-distance" id="sp500-atr-14-label">--</div>
+        </div>
+
+    </div>
+
+</div>
 
         </div>
 
@@ -5748,7 +5855,7 @@ async function getSP500DailyData() {
 
         if (!response.ok) {
             throw new Error(
-                "S&P return request failed"
+                "S&P daily data request failed"
             );
         }
 
@@ -5761,8 +5868,17 @@ async function getSP500DailyData() {
         const timestamps =
             result?.timestamp || [];
 
+        const quote =
+            result?.indicators?.quote?.[0];
+
+        const highs =
+            quote?.high || [];
+
+        const lows =
+            quote?.low || [];
+
         const closes =
-            result?.indicators?.quote?.[0]?.close || [];
+            quote?.close || [];
 
         const candles = [];
 
@@ -5772,10 +5888,15 @@ async function getSP500DailyData() {
             i++
         ) {
 
-            const close =
-                closes[i];
+            const high = highs[i];
+            const low = lows[i];
+            const close = closes[i];
 
             if (
+                typeof high === "number" &&
+                Number.isFinite(high) &&
+                typeof low === "number" &&
+                Number.isFinite(low) &&
                 typeof close === "number" &&
                 Number.isFinite(close)
             ) {
@@ -5785,6 +5906,8 @@ async function getSP500DailyData() {
                         new Date(
                             timestamps[i] * 1000
                         ),
+                    high,
+                    low,
                     close
                 });
             }
@@ -5807,7 +5930,7 @@ async function getSP500DailyData() {
     } catch (error) {
 
         console.error(
-            "S&P return data error:",
+            "S&P daily data error:",
             error
         );
 
@@ -5816,6 +5939,327 @@ async function getSP500DailyData() {
     }
 }
 
+
+async function updateSP500SMAs() {
+
+    const candles = await getSP500DailyData();
+
+    if (!candles || !candles.length) {
+        return;
+    }
+
+    const quote = sp500LatestQuote;
+
+    if (!quote || !Number.isFinite(quote.price)) {
+        return;
+    }
+
+    const currentPrice = quote.price;
+
+    // Exclude today's unfinished trading session.
+    const todayKey = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(new Date());
+
+    const completedCandles = candles.filter(candle => {
+
+        const dateKey = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/New_York",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(candle.time);
+
+        return dateKey < todayKey;
+    });
+
+    // =====================================================
+    // SIMPLE MOVING AVERAGES
+    // =====================================================
+
+    function calculateSMA(period) {
+
+        if (completedCandles.length < period) {
+            return null;
+        }
+
+        const recentCloses = completedCandles
+            .slice(-period)
+            .map(candle => candle.close);
+
+        const total = recentCloses.reduce(
+            (sum, close) => sum + close,
+            0
+        );
+
+        return total / period;
+    }
+
+    function updateSMA(period, value) {
+
+        const valueElement = document.getElementById(
+            `sp500-sma-${period}`
+        );
+
+        const distanceElement = document.getElementById(
+            `sp500-sma-${period}-distance`
+        );
+
+        if (!valueElement || !distanceElement) {
+            return;
+        }
+
+        if (value === null) {
+            valueElement.textContent = "--";
+            distanceElement.textContent = "--";
+            distanceElement.style.color = "#777f89";
+            return;
+        }
+
+        valueElement.textContent = value.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        const difference = (
+            (currentPrice - value) / value
+        ) * 100;
+
+        const above = difference >= 0;
+
+        distanceElement.textContent =
+            `${Math.abs(difference).toFixed(2)}% ${above ? "ABOVE" : "BELOW"}`;
+
+        distanceElement.style.color =
+            above ? "#4ade80" : "#ef7373";
+    }
+
+    updateSMA(20, calculateSMA(20));
+    updateSMA(50, calculateSMA(50));
+    updateSMA(200, calculateSMA(200));
+
+
+    // =====================================================
+    // RSI 14 — WILDER'S METHOD
+    // =====================================================
+
+    function calculateRSI(period) {
+
+        if (completedCandles.length <= period) {
+            return null;
+        }
+
+        const changes = [];
+
+        for (let i = 1; i < completedCandles.length; i++) {
+
+            changes.push(
+                completedCandles[i].close -
+                completedCandles[i - 1].close
+            );
+        }
+
+        let averageGain = 0;
+        let averageLoss = 0;
+
+        // Initial average gain and loss.
+        for (let i = 0; i < period; i++) {
+
+            const change = changes[i];
+
+            if (change > 0) {
+                averageGain += change;
+            } else {
+                averageLoss += Math.abs(change);
+            }
+        }
+
+        averageGain /= period;
+        averageLoss /= period;
+
+        // Wilder's smoothing.
+        for (let i = period; i < changes.length; i++) {
+
+            const change = changes[i];
+
+            const gain = Math.max(change, 0);
+            const loss = Math.max(-change, 0);
+
+            averageGain = (
+                averageGain * (period - 1) + gain
+            ) / period;
+
+            averageLoss = (
+                averageLoss * (period - 1) + loss
+            ) / period;
+        }
+
+        if (averageLoss === 0) {
+            return averageGain === 0 ? 50 : 100;
+        }
+
+        const relativeStrength =
+            averageGain / averageLoss;
+
+        return 100 - (
+            100 / (1 + relativeStrength)
+        );
+    }
+
+    const rsi = calculateRSI(14);
+
+    const rsiValue = document.getElementById(
+        "sp500-rsi-14"
+    );
+
+    const rsiLabel = document.getElementById(
+        "sp500-rsi-14-label"
+    );
+
+    if (rsiValue && rsiLabel) {
+
+        if (rsi === null) {
+
+            rsiValue.textContent = "--";
+            rsiLabel.textContent = "--";
+            rsiLabel.style.color = "#777f89";
+
+        } else {
+
+            rsiValue.textContent =
+                rsi.toFixed(2);
+
+            let label;
+            let color;
+
+            if (rsi < 30) {
+                label = "OVERSOLD";
+                color = "#ef7373";
+            } else if (rsi < 40) {
+                label = "WEAK";
+                color = "#ef7373";
+            } else if (rsi < 50) {
+                label = "SOFT";
+                color = "#fbbf24";
+            } else if (rsi < 60) {
+                label = "POSITIVE";
+                color = "#4ade80";
+            } else if (rsi < 70) {
+                label = "STRONG";
+                color = "#4ade80";
+            } else {
+                label = "OVERBOUGHT";
+                color = "#ef7373";
+            }
+
+            rsiLabel.textContent = label;
+            rsiLabel.style.color = color;
+        }
+    }
+
+
+    // =====================================================
+    // ATR 14 — WILDER'S METHOD
+    // =====================================================
+
+    function calculateATR(period) {
+
+        if (completedCandles.length <= period) {
+            return null;
+        }
+
+        const trueRanges = [];
+
+        for (let i = 1; i < completedCandles.length; i++) {
+
+            const candle = completedCandles[i];
+            const previousClose =
+                completedCandles[i - 1].close;
+
+            const trueRange = Math.max(
+                candle.high - candle.low,
+                Math.abs(candle.high - previousClose),
+                Math.abs(candle.low - previousClose)
+            );
+
+            trueRanges.push(trueRange);
+        }
+
+        // Initial ATR is the average of the first 14 true ranges.
+        let atr = trueRanges
+            .slice(0, period)
+            .reduce((sum, range) => sum + range, 0) / period;
+
+        // Wilder's smoothing.
+        for (let i = period; i < trueRanges.length; i++) {
+
+            atr = (
+                atr * (period - 1) + trueRanges[i]
+            ) / period;
+        }
+
+        return atr;
+    }
+
+    const atr = calculateATR(14);
+
+    const atrValue = document.getElementById(
+        "sp500-atr-14"
+    );
+
+    const atrLabel = document.getElementById(
+        "sp500-atr-14-label"
+    );
+
+    if (atrValue && atrLabel) {
+
+        if (atr === null) {
+
+            atrValue.textContent = "--";
+            atrLabel.textContent = "--";
+            atrLabel.style.color = "#777f89";
+
+        } else {
+
+            const atrPercent =
+                (atr / currentPrice) * 100;
+
+            atrValue.textContent =
+                atr.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+            let label;
+            let color;
+
+            if (atrPercent < 0.75) {
+                label = "LOW";
+                color = "#4ade80";
+            } else if (atrPercent < 1.00) {
+                label = "NORMAL";
+                color = "#4ade80";
+            } else if (atrPercent < 1.50) {
+                label = "ELEVATED";
+                color = "#fbbf24";
+            } else if (atrPercent < 2.00) {
+                label = "HIGH";
+                color = "#ef7373";
+            } else {
+                label = "VERY HIGH";
+                color = "#ef7373";
+            }
+
+            atrLabel.textContent =
+                `${atrPercent.toFixed(2)}% · ${label}`;
+
+            atrLabel.style.color = color;
+        }
+    }
+}
 
 async function updateSP500PeriodReturns() {
 
@@ -6069,6 +6513,7 @@ async function updateSP500Chart() {
 
     updateSP500PeriodReturns();
 
+    updateSP500SMAs();
 
     if (
         document.body.classList.contains(
