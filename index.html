@@ -1384,6 +1384,14 @@ body.finviz-mode .page-header {
 
 @media (max-width: 700px) {
 
+    .finviz-pulse-bar {
+        flex-wrap: wrap;
+    }
+
+    #finviz-countdown {
+        margin-left: auto;
+    }
+
     .finviz-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
@@ -1849,24 +1857,33 @@ body.finviz-mode .page-header {
         <h2>MARKET PULSE</h2>
 
         <div class="finviz-pulse-bar">
-    <span id="finviz-pulse-dot">⚪</span>
-    <span id="finviz-pulse-label">Loading...</span>
+            <span id="finviz-pulse-dot">⚪</span>
+            <span id="finviz-pulse-label">Loading...</span>
 
-    <span
-        id="finviz-market-condition-banner"
-        class="market-condition-banner"
-    ></span>
+            <span
+                id="finviz-market-condition-banner"
+                class="market-condition-banner"
+            ></span>
 
-    <span
-        id="finviz-intraday-alert-banner"
-        class="market-condition-banner"
-    ></span>
+	    <span
+                id="finviz-intraday-alert-banner"
+                class="market-condition-banner"
+            ></span>
 
-    <span id="finviz-countdown"></span>
-</div>
+            <!-- NEW: SMA INDICATORS -->
+            <span id="finviz-sma-alignment"
+                  class="market-condition-banner sma-neutral"></span>
+
+            <span id="finviz-sma-cross-20-50"
+                  class="market-condition-banner sma-neutral"></span>
+
+            <span id="finviz-sma-cross"
+                  class="market-condition-banner sma-neutral"></span>
+
+            <span id="finviz-countdown"></span>
+        </div>
 
     </div>
-
     <div class="finviz-section">
 
         <h2>U.S. MARKETS</h2>
@@ -6305,6 +6322,45 @@ updateSMA(200, sma200, sma200Previous);
                 statusContainer.style.display = "flex";
             }
         }
+    }
+
+
+    // =====================================================
+    // SYNC SMA LABELS TO FINVIZ
+    // Reuse the existing Full View results.
+    // =====================================================
+
+    const finvizAlignment = document.getElementById(
+        "finviz-sma-alignment"
+    );
+
+    const finvizCross2050 = document.getElementById(
+        "finviz-sma-cross-20-50"
+    );
+
+    const finvizCross = document.getElementById(
+        "finviz-sma-cross"
+    );
+
+    if (alignmentElement && finvizAlignment) {
+        finvizAlignment.textContent =
+            alignmentElement.textContent;
+        finvizAlignment.className =
+            alignmentElement.className;
+    }
+
+    if (cross2050Element && finvizCross2050) {
+        finvizCross2050.textContent =
+            cross2050Element.textContent;
+        finvizCross2050.className =
+            cross2050Element.className;
+    }
+
+    if (crossElement && finvizCross) {
+        finvizCross.textContent =
+            crossElement.textContent;
+        finvizCross.className =
+            crossElement.className;
     }
 
 
