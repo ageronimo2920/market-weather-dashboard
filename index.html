@@ -85,12 +85,71 @@ h2 {
 }
 
 
+
 .market-pulse-dot {
     display: inline-block;
     margin-left: 6px;
     font-size: 12px;
     letter-spacing: 0;
-    vertical-align: 2px;
+    vertical-align: middle;
+}
+
+.market-pulse-status {
+    display: inline-block;
+    margin-left: 3px;
+    color: #aeb4bd;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+}
+
+.market-pulse-joke {
+    display: inline-block;
+    margin-left: 9px;
+    color: #777f89;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+    vertical-align: middle;
+}
+
+.market-countdown {
+    margin-left: auto;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   FULL VIEW MARKET HEADER
+   ========================================================= */
+
+.market-header {
+    margin-bottom: 14px;
+}
+
+.market-header-top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-bottom: 11px;
+}
+
+.market-header-top h2 {
+    margin: 0;
+}
+
+.market-header-labels {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.market-header-labels .market-condition-banner {
+    margin-left: 0;
 }
 
 .market-condition-banner {
@@ -138,16 +197,6 @@ h2 {
 
 .market-condition-banner.sma-neutral {
     color: #777f89;
-}
-
-.market-pulse-joke {
-    display: inline-block;
-    margin-left: 8px;
-    color: #777f89;
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0;
-    vertical-align: 2px;
 }
 
 .section {
@@ -1121,7 +1170,25 @@ body.finviz-mode .page-header {
     .sp500-sma-item:nth-child(5) {
         grid-column: 4 / span 2;
     }
+
+.market-header-top {
+    row-gap: 6px;
 }
+
+.market-pulse-joke {
+    margin-left: 7px;
+}
+
+.market-countdown {
+    margin-left: 10px;
+}
+
+.market-header-labels {
+    row-gap: 7px;
+}
+
+}
+
 
 @media (max-width: 390px) {
 
@@ -2019,35 +2086,72 @@ body.finviz-mode .page-header {
         <div class="section">
 
             
-	<h2>
-    MARKET
+	
 
-    <span
-        id="market-pulse-dot"
-        class="market-pulse-dot"
-        aria-label="Market Pulse status"
-    >⚪</span>
+<div class="market-header">
 
-    <span
-        id="market-condition-banner"
-        class="market-condition-banner"
-    ></span>
+    <!-- LINE 1: MARKET PULSE -->
 
-    <span
-        id="intraday-alert-banner"
-        class="market-condition-banner"
-    ></span>
+    <div class="market-header-top">
 
-    <span
-        id="market-countdown"
-        class="market-countdown"
-    ></span>
+        <h2>MARKET</h2>
 
-    <span
-        id="market-pulse-joke"
-        class="market-pulse-joke"
-    ></span>
-</h2>
+        <span
+            id="market-pulse-dot"
+            class="market-pulse-dot"
+            aria-label="Market Pulse status"
+        >⚪</span>
+
+        <span
+            id="market-pulse-status"
+            class="market-pulse-status"
+        ></span>
+
+        <span
+            id="market-pulse-joke"
+            class="market-pulse-joke"
+        ></span>
+
+        <span
+            id="market-countdown"
+            class="market-countdown"
+        ></span>
+
+    </div>
+
+    <!-- LINE 2: TECHNICAL LABELS -->
+
+    <div class="market-header-labels">
+
+        <span
+            id="market-condition-banner"
+            class="market-condition-banner"
+        ></span>
+
+        <span
+            id="intraday-alert-banner"
+            class="market-condition-banner"
+        ></span>
+
+        <span
+            id="fullview-sma-alignment"
+            class="market-condition-banner"
+        ></span>
+
+        <span
+            id="fullview-sma-cross-20-50"
+            class="market-condition-banner"
+        ></span>
+
+        <span
+            id="fullview-sma-cross"
+            class="market-condition-banner"
+        ></span>
+
+    </div>
+
+</div>
+
 
             <div class="main-market-grid">
 
@@ -2705,58 +2809,15 @@ body.finviz-mode .page-header {
 
 </div>
 
+<!-- WEATHER HEADER -->
 
+<div class="section">
+    <h2>WEATHER</h2>
+</div>
 
-        <!-- MARKET PULSE -->
+<!-- WEATHER + FORECAST -->
 
-        <div class="section">
-
-            <h2>MARKET PULSE</h2>
-
-            <div class="pulse-card">
-
-                <div class="pulse-main">
-
-                    <span
-                        class="pulse-icon"
-                        id="pulse-icon"
-                    >
-                        🟡
-                    </span>
-
-                    <span
-                        class="pulse-label"
-                        id="pulse-label"
-                    >
-                        MIXED
-                    </span>
-
-                </div>
-
-
-                <div
-                    class="pulse-description"
-                    id="pulse-description"
-                >
-                    Waiting for market data...
-                </div>
-
-
-                <div
-                    class="pulse-updated"
-                    id="pulse-updated"
-                >
-                    Updated --
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- WEATHER + FORECAST -->
-
-        <div class="section">
+<div class="section">
 
             <div class="weather-forecast-grid">
 
@@ -4871,32 +4932,24 @@ function updateMarketPulse(
 
 
 
-    document.getElementById(
-        "pulse-icon"
-    ).textContent =
-        icon;
+    /* Legacy standalone Market Pulse elements (optional) */
 
-    document.getElementById(
-        "pulse-label"
-    ).textContent =
-        label;
+const pulseIcon = document.getElementById("pulse-icon");
+const pulseLabel = document.getElementById("pulse-label");
+const pulseDescription = document.getElementById("pulse-description");
+const pulseUpdated = document.getElementById("pulse-updated");
 
-    document.getElementById(
-        "pulse-description"
-    ).textContent =
-        description;
-
-    document.getElementById(
-        "pulse-updated"
-    ).textContent =
-        `Updated ${new Date().toLocaleTimeString(
-            "en-US",
-            {
-                hour: "numeric",
-                minute: "2-digit",
-                second: "2-digit"
-            }
-        )}`;
+if (pulseIcon) pulseIcon.textContent = icon;
+if (pulseLabel) pulseLabel.textContent = label;
+if (pulseDescription) pulseDescription.textContent = description;
+if (pulseUpdated) {
+    pulseUpdated.textContent =
+        `Updated ${new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            second: "2-digit"
+        })}`;
+}
 
     document.getElementById(
         "overview-pulse-icon"
@@ -4913,16 +4966,23 @@ document.getElementById(
     "finviz-pulse-label"
 ).textContent = label;
 
+        /* FULL VIEW MARKET HEADER */
+
     const marketPulseDot = document.getElementById(
         "market-pulse-dot"
     );
 
     if (marketPulseDot) {
         marketPulseDot.textContent = icon;
-        marketPulseDot.setAttribute(
-            "title",
-            label
-        );
+        marketPulseDot.setAttribute("title", label);
+    }
+
+    const marketPulseStatus = document.getElementById(
+        "market-pulse-status"
+    );
+
+    if (marketPulseStatus) {
+        marketPulseStatus.textContent = label;
     }
 
     const marketPulseJoke = document.getElementById(
@@ -4930,7 +4990,7 @@ document.getElementById(
     );
 
     if (marketPulseJoke) {
-        marketPulseJoke.textContent = "";
+        marketPulseJoke.textContent = description;
     }
 
     document.getElementById(
@@ -5003,7 +5063,7 @@ function updateMarketConditionBanner(
     }
 
     // =====================================================
-    // INTRADAY MARKET SELLOFF
+    // INTRADAY MARKET CONDITION
     // =====================================================
 
     const significantSelloff =
@@ -5014,6 +5074,11 @@ function updateMarketConditionBanner(
     const severeSelloff =
         indexes.filter(
             data => data.changePct <= -3.5
+        ).length;
+
+    const advancing =
+        indexes.filter(
+            data => data.changePct > 0
         ).length;
 
     if (severeSelloff >= 3) {
@@ -5030,6 +5095,22 @@ function updateMarketConditionBanner(
             intradayElements,
             "SIGNIFICANT MARKET SELLOFF",
             "weakness"
+        );
+
+    } else if (advancing === 4) {
+
+        setBanner(
+            intradayElements,
+            "BROAD MARKET RALLY",
+            "rally"
+        );
+
+    } else if (advancing >= 3) {
+
+        setBanner(
+            intradayElements,
+            "MARKET ADVANCING",
+            "rally"
         );
     }
 
@@ -5077,42 +5158,14 @@ function updateMarketConditionBanner(
                 "deep-pullback"
             );
 
-            return;
-        }
-
-        if (pullbacks >= 3) {
+        } else if (pullbacks >= 3) {
 
             setBanner(
                 bannerElements,
                 "BROAD MARKET WEAKNESS",
                 "weakness"
             );
-
-            return;
         }
-    }
-
-    // Count indexes advancing today
-    const advancing =
-        indexes.filter(
-            data => data.changePct > 0
-        ).length;
-
-    if (advancing === 4) {
-
-        setBanner(
-            bannerElements,
-            "BROAD MARKET RALLY",
-            "rally"
-        );
-
-    } else if (advancing >= 3) {
-
-        setBanner(
-            bannerElements,
-            "MARKET ADVANCING",
-            "rally"
-        );
     }
 }
 
@@ -6365,29 +6418,88 @@ updateSMA(200, sma200, sma200Previous);
 
 
     // =====================================================
-    // RSI 14 — WILDER'S METHOD
+    // SYNC SMA LABELS TO FULL VIEW HEADER
+    // =====================================================
+
+    const fullViewAlignment = document.getElementById(
+        "fullview-sma-alignment"
+    );
+
+    const fullViewCross2050 = document.getElementById(
+        "fullview-sma-cross-20-50"
+    );
+
+    const fullViewCross = document.getElementById(
+        "fullview-sma-cross"
+    );
+
+    if (alignmentElement && fullViewAlignment) {
+        fullViewAlignment.textContent =
+            alignmentElement.textContent;
+        fullViewAlignment.className =
+            alignmentElement.className;
+    }
+
+    if (cross2050Element && fullViewCross2050) {
+        fullViewCross2050.textContent =
+            cross2050Element.textContent;
+        fullViewCross2050.className =
+            cross2050Element.className;
+    }
+
+    if (crossElement && fullViewCross) {
+        fullViewCross.textContent =
+            crossElement.textContent;
+        fullViewCross.className =
+            crossElement.className;
+    }
+
+
+
+    // =====================================================
+    // INTRADAY INDICATOR DATA
+    // =====================================================
+
+    const todayCandle = candles.find(candle => {
+
+        const dateKey = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/New_York",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(candle.time);
+
+        return dateKey === todayKey;
+    });
+
+    // =====================================================
+    // RSI 14 — WILDER'S METHOD (INTRADAY)
     // =====================================================
 
     function calculateRSI(period) {
 
-        if (completedCandles.length <= period) {
+        const closes = completedCandles.map(
+            candle => candle.close
+        );
+
+        // Include the latest live price as today's close.
+        if (todayCandle) {
+            closes.push(currentPrice);
+        }
+
+        if (closes.length <= period) {
             return null;
         }
 
         const changes = [];
 
-        for (let i = 1; i < completedCandles.length; i++) {
-
-            changes.push(
-                completedCandles[i].close -
-                completedCandles[i - 1].close
-            );
+        for (let i = 1; i < closes.length; i++) {
+            changes.push(closes[i] - closes[i - 1]);
         }
 
         let averageGain = 0;
         let averageLoss = 0;
 
-        // Initial average gain and loss.
         for (let i = 0; i < period; i++) {
 
             const change = changes[i];
@@ -6402,7 +6514,6 @@ updateSMA(200, sma200, sma200Previous);
         averageGain /= period;
         averageLoss /= period;
 
-        // Wilder's smoothing.
         for (let i = period; i < changes.length; i++) {
 
             const change = changes[i];
@@ -6423,12 +6534,9 @@ updateSMA(200, sma200, sma200Previous);
             return averageGain === 0 ? 50 : 100;
         }
 
-        const relativeStrength =
-            averageGain / averageLoss;
+        const relativeStrength = averageGain / averageLoss;
 
-        return 100 - (
-            100 / (1 + relativeStrength)
-        );
+        return 100 - (100 / (1 + relativeStrength));
     }
 
     const rsi = calculateRSI(14);
@@ -6451,8 +6559,7 @@ updateSMA(200, sma200, sma200Previous);
 
         } else {
 
-            rsiValue.textContent =
-                rsi.toFixed(2);
+            rsiValue.textContent = rsi.toFixed(2);
 
             let label;
             let color;
@@ -6484,22 +6591,28 @@ updateSMA(200, sma200, sma200Previous);
 
 
     // =====================================================
-    // ATR 14 — WILDER'S METHOD
+    // ATR 14 — WILDER'S METHOD (INTRADAY)
     // =====================================================
 
     function calculateATR(period) {
 
-        if (completedCandles.length <= period) {
+        const atrCandles = [...completedCandles];
+
+        // Include today's developing high and low.
+        if (todayCandle) {
+            atrCandles.push(todayCandle);
+        }
+
+        if (atrCandles.length <= period) {
             return null;
         }
 
         const trueRanges = [];
 
-        for (let i = 1; i < completedCandles.length; i++) {
+        for (let i = 1; i < atrCandles.length; i++) {
 
-            const candle = completedCandles[i];
-            const previousClose =
-                completedCandles[i - 1].close;
+            const candle = atrCandles[i];
+            const previousClose = atrCandles[i - 1].close;
 
             const trueRange = Math.max(
                 candle.high - candle.low,
@@ -6510,12 +6623,10 @@ updateSMA(200, sma200, sma200Previous);
             trueRanges.push(trueRange);
         }
 
-        // Initial ATR is the average of the first 14 true ranges.
         let atr = trueRanges
             .slice(0, period)
             .reduce((sum, range) => sum + range, 0) / period;
 
-        // Wilder's smoothing.
         for (let i = period; i < trueRanges.length; i++) {
 
             atr = (
@@ -6546,14 +6657,12 @@ updateSMA(200, sma200, sma200Previous);
 
         } else {
 
-            const atrPercent =
-                (atr / currentPrice) * 100;
+            const atrPercent = (atr / currentPrice) * 100;
 
-            atrValue.textContent =
-                atr.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+            atrValue.textContent = atr.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
 
             let label;
             let color;
@@ -6581,6 +6690,7 @@ updateSMA(200, sma200, sma200Previous);
             atrLabel.style.color = color;
         }
     }
+
 }
 
 async function updateSP500PeriodReturns() {
