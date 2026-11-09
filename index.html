@@ -107,7 +107,7 @@ h2 {
 .market-pulse-joke {
     display: inline-block;
     margin-left: 9px;
-    color: #777f89;
+    color: #b5bdc8;
     font-size: 11px;
     font-weight: 400;
     letter-spacing: 0;
@@ -5605,6 +5605,64 @@ function drawSP500Chart(candles) {
         padding.left +
         ((time - sessionStart) / sessionLength) * chartWidth;
 
+    const smaLevels = [
+    {
+        id: "sp500-sma-20",
+        color: "#3b82f6"
+    },
+    {
+        id: "sp500-sma-50",
+        color: "#f59e0b"
+    },
+    {
+        id: "sp500-sma-200",
+        color: "#a78bfa"
+    }
+].map(item => {
+
+    const element =
+        document.getElementById(item.id);
+
+    const rawValue =
+        element?.textContent
+            ?.replace(/,/g, "")
+            .replace(/[^\d.-]/g, "")
+            .trim();
+
+    return {
+        ...item,
+        price: Number(rawValue)
+    };
+
+}).filter(item =>
+    Number.isFinite(item.price) &&
+    item.price >= minPrice &&
+    item.price <= maxPrice
+);
+
+
+// Draw SMA reference lines
+
+smaLevels.forEach(item => {
+
+    const y = priceToY(item.price);
+
+    ctx.save();
+
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = item.color;
+    ctx.globalAlpha = 0.75;
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(width - padding.right, y);
+    ctx.stroke();
+
+    ctx.restore();
+
+});
+
     ctx.strokeStyle = "#272c34";
     ctx.lineWidth = 1;
     ctx.font = "10px Arial";
@@ -5725,12 +5783,163 @@ function drawSP500Chart(candles) {
     ctx.stroke();
     ctx.restore();
 
-    ctx.fillStyle = "#dfe2e6";
-    ctx.font = "bold 10px Arial";
-    ctx.fillText(latest.close.toFixed(2), width - padding.right + 5, currentY - 4);
+// CURRENT PRICE BUBBLE
 
-    loading.style.display = "none";
+const priceText = latest.close.toFixed(2);
+
+const bubbleX = width - padding.right + 1;
+const bubbleY = currentY - 9;
+const bubbleWidth = 49;
+const bubbleHeight = 18;
+
+ctx.save();
+
+// Bubble background
+ctx.fillStyle = "#303741";
+ctx.strokeStyle = "#697381";
+ctx.lineWidth = 1;
+
+ctx.beginPath();
+ctx.roundRect(
+    bubbleX,
+    bubbleY,
+    bubbleWidth,
+    bubbleHeight,
+    4
+);
+ctx.fill();
+ctx.stroke();
+
+// Price text
+ctx.fillStyle = "#f0f2f5";
+ctx.font = "bold 10px Arial";
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+
+ctx.fillText(
+    priceText,
+    bubbleX + bubbleWidth / 2,
+    bubbleY + bubbleHeight / 2
+);
+
+ctx.restore();
+
+// =====================================================
+// SMA PRICE TAGS
+// =====================================================
+
+const tagHeight = 14;
+const tagGap = 17;
+
+const topLimit =
+    padding.top + tagHeight / 2;
+
+const bottomLimit =
+    padding.top + chartHeight - tagHeight / 2;
+
+const tagWidth =
+    padding.right - 3;
+
+const tagX =
+    width - padding.right + 1;
+
+const smaTags = smaLevels
+    .map(item => ({
+        ...item,
+        y: priceToY(item.price)
+    }))
+    .sort((a, b) => a.y - b.y);
+
+
+// Position tags without overlapping
+
+smaTags.forEach((item, index) => {
+
+    item.y = Math.max(
+        topLimit,
+        Math.min(bottomLimit, item.y)
+    );
+
+    // Avoid the existing current-price label
+
+    if (Math.abs(item.y - currentY) < tagGap) {
+
+        const above = currentY - tagGap;
+        const below = currentY + tagGap;
+
+        if (above >= topLimit) {
+            item.y = above;
+        } else {
+            item.y = below;
+        }
+    }
+
+    // Separate SMA tags from each other
+
+    if (
+        index > 0 &&
+        item.y - smaTags[index - 1].y < tagGap
+    ) {
+
+        item.y =
+            smaTags[index - 1].y + tagGap;
+
+    }
+
+});
+
+
+// Keep all tags inside the chart
+
+if (smaTags.length) {
+
+    const overflow =
+        smaTags[smaTags.length - 1].y - bottomLimit;
+
+    if (overflow > 0) {
+
+        smaTags.forEach(item => {
+            item.y -= overflow;
+        });
+
+    }
+
 }
+
+
+// Draw colored tags
+
+smaTags.forEach(item => {
+
+    ctx.save();
+
+    ctx.fillStyle = item.color;
+
+    ctx.fillRect(
+        tagX,
+        item.y - tagHeight / 2,
+        tagWidth,
+        tagHeight
+    );
+
+    ctx.fillStyle = "#111820";
+    ctx.font = "bold 9px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(
+        item.price.toFixed(2),
+        tagX + tagWidth / 2,
+        item.y,
+        tagWidth - 2
+    );
+
+    ctx.restore();
+
+});
+
+
+loading.style.display = "none";}
 
 
 /* =========================================================
