@@ -6326,13 +6326,29 @@ async function updateSP500SMAs() {
 
     const currentPrice = quote.price;
 
-    // Exclude today's unfinished trading session.
+
+    // =====================================================
+    // COMPLETED DAILY CANDLES
+    // =====================================================
+
     const todayKey = new Intl.DateTimeFormat("en-CA", {
         timeZone: "America/New_York",
         year: "numeric",
         month: "2-digit",
         day: "2-digit"
     }).format(new Date());
+
+    const todayCandle = candles.find(candle => {
+
+        const dateKey = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/New_York",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(candle.time);
+
+        return dateKey === todayKey;
+    });
 
     const completedCandles = candles.filter(candle => {
 
@@ -6346,20 +6362,36 @@ async function updateSP500SMAs() {
         return dateKey < todayKey;
     });
 
+    // Include today's candle in SMAs after the regular
+    // market closes, provided Yahoo has supplied it.
+
+    const etTime = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/New_York",
+        hour: "2-digit",
+        hourCycle: "h23"
+    }).format(new Date());
+
+    const marketClosed = Number(etTime) >= 16;
+
+    const smaCandles =
+        marketClosed && todayCandle
+            ? [...completedCandles, todayCandle]
+            : completedCandles;
+
 // =====================================================
 // SIMPLE MOVING AVERAGES
 // =====================================================
 
 function calculateSMA(period, offset = 0) {
 
-    const end = completedCandles.length - offset;
+    const end = smaCandles.length - offset;
     const start = end - period;
 
     if (start < 0) {
         return null;
     }
 
-    const recentCloses = completedCandles
+    const recentCloses = smaCandles
         .slice(start, end)
         .map(candle => candle.close);
 
@@ -6669,17 +6701,7 @@ updateSMA(200, sma200, sma200Previous);
     // INTRADAY INDICATOR DATA
     // =====================================================
 
-    const todayCandle = candles.find(candle => {
 
-        const dateKey = new Intl.DateTimeFormat("en-CA", {
-            timeZone: "America/New_York",
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit"
-        }).format(candle.time);
-
-        return dateKey === todayKey;
-    });
 
     // =====================================================
     // RSI 14 — WILDER'S METHOD (INTRADAY)
