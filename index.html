@@ -5680,12 +5680,15 @@ smaLevels.forEach(item => {
         ctx.fillText(price.toFixed(0), width - padding.right + 6, y + 3);
     }
 
+
     const xLabels = [
-        [0, "9:30 AM"],
-        [0.25, "11:00 AM"],
-        [0.5, "1:00 PM"],
-        [0.75, "2:30 PM"],
-        [1, "4:00 PM"]
+        [30 / 390, "10 AM"],
+        [90 / 390, "11 AM"],
+        [150 / 390, "12 PM"],
+        [210 / 390, "1 PM"],
+        [270 / 390, "2 PM"],
+        [330 / 390, "3 PM"],
+        [390 / 390, "4 PM"]
     ];
 
     xLabels.forEach(([fraction, label]) => {
