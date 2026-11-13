@@ -233,7 +233,7 @@ h2 {
 }
 
 .market-card {
-    min-height: 128px;
+    min-height: 105px;
 }
 
 /* FULL VIEW GRADIENT CARD TEXT */
@@ -430,6 +430,21 @@ h2 {
 .chart-title {
     font-size: 13px;
     color: #aeb4bd;
+}
+
+
+.chart-levels {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-left: 10px;
+    font-size: 11px;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.chart-level {
+    font-weight: 500;
 }
 
 .chart-current {
@@ -1197,6 +1212,11 @@ body.finviz-mode .page-header {
         font-size: 12px;
     }
 
+    .market-card {
+        min-height: 85px;
+        padding: 10px 11px;
+    }
+
 }
 
 
@@ -1493,6 +1513,13 @@ body.finviz-mode .page-header {
     .finviz-change {
         font-size: 12px;
     }
+}
+
+
+/* FULL VIEW: hide status and per-card update labels */
+.full-dashboard .market-status,
+.full-dashboard .market-updated {
+    display: none;
 }
 
 </style>
@@ -2394,7 +2421,12 @@ body.finviz-mode .page-header {
 
                     <div class="chart-title">
                         Intraday
-                    </div>
+
+		    <span class="chart-levels">
+         	        <span class="chart-level" id="chart-pdh">PDH --</span>
+	                <span class="chart-level" id="chart-pdl">PDL --</span>
+	            </span>
+                 </div>
 
                     <div
                         class="chart-current"
@@ -7121,41 +7153,67 @@ async function updateSP500Chart() {
         return;
     }
 
-    getSP500DailyData().then(dailyCandles => {
-        if (!dailyCandles || !dailyCandles.length) return;
 
-        const todayKey = new Intl.DateTimeFormat("en-CA", {
+getSP500DailyData().then(dailyCandles => {
+
+    if (!dailyCandles || !dailyCandles.length) return;
+
+    const todayKey = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(new Date());
+
+    let previousSession = null;
+
+    for (const candle of dailyCandles) {
+
+        const candleKey = new Intl.DateTimeFormat("en-CA", {
             timeZone: "America/New_York",
             year: "numeric",
             month: "2-digit",
             day: "2-digit"
-        }).format(new Date());
+        }).format(candle.time);
 
-        let previousSession = null;
-
-        for (const candle of dailyCandles) {
-            const candleKey = new Intl.DateTimeFormat("en-CA", {
-                timeZone: "America/New_York",
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit"
-            }).format(candle.time);
-
-            if (candleKey < todayKey) {
-                previousSession = candle;
-            }
+        if (candleKey < todayKey) {
+            previousSession = candle;
         }
+    }
 
-        if (!previousSession) return;
+    if (!previousSession) return;
 
-        sp500PreviousClose = previousSession.close;
+    // Previous session close
+    sp500PreviousClose = previousSession.close;
 
-        drawSP500Chart(candles);
+    // Previous session high and low
+    const pdhElement = document.getElementById("chart-pdh");
+    const pdlElement = document.getElementById("chart-pdl");
 
-        if (document.body.classList.contains("overview-mode")) {
-            drawOverviewSP500Chart(candles);
-        }
-    });
+    if (pdhElement) {
+        pdhElement.textContent =
+            `PDH ${previousSession.high.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+    }
+
+    if (pdlElement) {
+        pdlElement.textContent =
+            `PDL ${previousSession.low.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+    }
+
+    // Redraw with the updated previous-close reference
+    drawSP500Chart(candles);
+
+    if (document.body.classList.contains("overview-mode")) {
+        drawOverviewSP500Chart(candles);
+    }
+
+});
 
     const latest =
         candles[
