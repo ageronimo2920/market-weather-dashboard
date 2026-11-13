@@ -447,6 +447,12 @@ h2 {
     font-weight: 500;
 }
 
+#chart-s2 {
+    border-left: 1px solid #555b66;
+    padding-left: 12px;
+    margin-left: 3px;
+}
+
 .chart-level.above {
     color: #4ade80;
     border-color: #4ade80;
@@ -2432,92 +2438,28 @@ body.finviz-mode .page-header {
                     <div class="chart-title">
                         Intraday
 
-		    <span class="chart-levels">
-         	        <span class="chart-level" id="chart-pdh">PDH --</span>
-	                <span class="chart-level" id="chart-pdl">PDL --</span>
-	            </span>
+			<span class="chart-levels">
+			    <span class="chart-level" id="chart-pdh">PDH --</span>
+			    <span class="chart-level" id="chart-pdl">PDL --</span>
+			    <span class="chart-level" id="chart-s2">S2 --</span>
+			    <span class="chart-level" id="chart-s1">S1 --</span>
+			    <span class="chart-level" id="chart-pp">PP --</span>
+			    <span class="chart-level" id="chart-r1">R1 --</span>
+			    <span class="chart-level" id="chart-r2">R2 --</span>
+			</span>
                  </div>
 
-                    <div
+                  <div
                         class="chart-current"
                         id="chart-current"
                     >
                         --
+
                     </div>
 
                 </div>
 
-                <div class="sp500-returns">
-
-                    <div class="sp500-return">
-                        <div class="sp500-return-label">1D</div>
-                        <div class="sp500-return-value" id="sp500-return-1d">--</div>
-                    </div>
-
-                    <div class="sp500-return">
-                        <div class="sp500-return-label">5D</div>
-                        <div class="sp500-return-value" id="sp500-return-5d">--</div>
-                    </div>
-
-                    <div class="sp500-return">
-                        <div class="sp500-return-label">1M</div>
-                        <div class="sp500-return-value" id="sp500-return-1m">--</div>
-                    </div>
-
-                    <div class="sp500-return">
-                        <div class="sp500-return-label">3M</div>
-                        <div class="sp500-return-value" id="sp500-return-3m">--</div>
-                    </div>
-
-                    <div class="sp500-return">
-                        <div class="sp500-return-label">6M</div>
-                        <div class="sp500-return-value" id="sp500-return-6m">--</div>
-                    </div>
-
-                    <div class="sp500-return">
-                        <div class="sp500-return-label">YTD</div>
-                        <div class="sp500-return-value" id="sp500-return-ytd">--</div>
-                    </div>
-
-                    <div class="sp500-return">
-                        <div class="sp500-return-label">1Y</div>
-                        <div class="sp500-return-value" id="sp500-return-1y">--</div>
-                    </div>
-
-	</div>
-
-                <div class="chart-wrap">
-
-                    <canvas id="sp500-chart"></canvas>
-
-                    <div
-                        class="chart-loading"
-                        id="chart-loading"
-                    >
-                        Loading chart...
-                    </div>
-
-                </div>
-
-
-                <div class="chart-footer">
-
-                    <span id="chart-start">
-                        9:30 AM
-                    </span>
-
-                    <span>
-                        5 min
-                    </span>
-
-                    <span id="chart-end">
-                        4:00 PM
-                    </span>
-
-    
-                </div>
-
-<!-- TECHNICAL INDICATORS -->
+                <!-- TECHNICAL INDICATORS -->
 
 <div class="sp500-sma">
 
@@ -2591,7 +2533,61 @@ body.finviz-mode .page-header {
         <div class="sp500-sma-distance" id="sp500-atr-14-label">--</div>
     </div>
 
-</div>
+    </div>
+
+                <div class="chart-wrap">
+
+                    <canvas id="sp500-chart"></canvas>
+
+                    <div
+                        class="chart-loading"
+                        id="chart-loading"
+                    >
+                        Loading chart...
+                    </div>
+
+                </div>
+
+
+
+               <div class="sp500-returns">
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">1D</div>
+                        <div class="sp500-return-value" id="sp500-return-1d">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">5D</div>
+                        <div class="sp500-return-value" id="sp500-return-5d">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">1M</div>
+                        <div class="sp500-return-value" id="sp500-return-1m">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">3M</div>
+                        <div class="sp500-return-value" id="sp500-return-3m">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">6M</div>
+                        <div class="sp500-return-value" id="sp500-return-6m">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">YTD</div>
+                        <div class="sp500-return-value" id="sp500-return-ytd">--</div>
+                    </div>
+
+                    <div class="sp500-return">
+                        <div class="sp500-return-label">1Y</div>
+                        <div class="sp500-return-value" id="sp500-return-1y">--</div>
+                    </div>
+
+	</div>
 
 </div>
 
@@ -7196,42 +7192,114 @@ getSP500DailyData().then(dailyCandles => {
     // Previous session close
     sp500PreviousClose = previousSession.close;
 
-// Previous session high and low
-const pdhElement = document.getElementById("chart-pdh");
-const pdlElement = document.getElementById("chart-pdl");
+    const previousHigh = previousSession.high;
+    const previousLow = previousSession.low;
+    const previousClose = previousSession.close;
 
-const currentPrice =
-    candles[candles.length - 1].close;
+    // Previous day high and low
+    const pdhElement =
+        document.getElementById("chart-pdh");
 
-if (pdhElement) {
+    const pdlElement =
+        document.getElementById("chart-pdl");
 
-    pdhElement.textContent =
-        `PDH ${previousSession.high.toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
+    const currentPrice =
+        candles[candles.length - 1].close;
 
-    pdhElement.classList.toggle(
-        "above",
-        currentPrice > previousSession.high
-    );
+    if (pdhElement) {
+
+        pdhElement.textContent =
+            `PDH ${previousHigh.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+
+        pdhElement.classList.toggle(
+            "above",
+            currentPrice > previousHigh
+        );
+
+    }
+
+    if (pdlElement) {
+
+        pdlElement.textContent =
+            `PDL ${previousLow.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+
+        pdlElement.classList.toggle(
+            "below",
+            currentPrice < previousLow
+        );
+
+    }
+
+    // Calculate daily pivot levels
+    const range =
+        previousHigh - previousLow;
+
+    const pp =
+        (previousHigh + previousLow + previousClose) / 3;
+
+    const r1 =
+        (2 * pp) - previousLow;
+
+    const s1 =
+        (2 * pp) - previousHigh;
+
+    const r2 =
+        pp + range;
+
+    const s2 =
+        pp - range;
+
+    // Update pivot level displays
+    const pivotLevels = [
+        { id: "chart-s2", label: "S2", value: s2 },
+        { id: "chart-s1", label: "S1", value: s1 },
+        { id: "chart-pp", label: "PP", value: pp },
+        { id: "chart-r1", label: "R1", value: r1 },
+        { id: "chart-r2", label: "R2", value: r2 }
+    ];
+
+    pivotLevels.forEach(level => {
+
+        const element =
+            document.getElementById(level.id);
+
+        if (!element) return;
+
+        element.textContent =
+            `${level.label} ${level.value.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+
+        element.classList.remove(
+            "above",
+            "below"
+        );
+
+        if (
+    level.label.startsWith("R") &&
+    currentPrice > level.value
+) {
+
+    element.classList.add("above");
+
+} else if (
+    level.label.startsWith("S") &&
+    currentPrice < level.value
+) {
+
+    element.classList.add("below");
 
 }
 
-if (pdlElement) {
+    });
 
-    pdlElement.textContent =
-        `PDL ${previousSession.low.toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
-
-    pdlElement.classList.toggle(
-        "below",
-        currentPrice < previousSession.low
-    );
-
-}
     // Redraw with the updated previous-close reference
     drawSP500Chart(candles);
 
