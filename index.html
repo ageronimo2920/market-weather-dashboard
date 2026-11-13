@@ -447,6 +447,16 @@ h2 {
     font-weight: 500;
 }
 
+.chart-level.above {
+    color: #4ade80;
+    border-color: #4ade80;
+}
+
+.chart-level.below {
+    color: #f87171;
+    border-color: #f87171;
+}
+
 .chart-current {
     font-size: 12px;
     font-weight: 600;
@@ -7186,26 +7196,42 @@ getSP500DailyData().then(dailyCandles => {
     // Previous session close
     sp500PreviousClose = previousSession.close;
 
-    // Previous session high and low
-    const pdhElement = document.getElementById("chart-pdh");
-    const pdlElement = document.getElementById("chart-pdl");
+// Previous session high and low
+const pdhElement = document.getElementById("chart-pdh");
+const pdlElement = document.getElementById("chart-pdl");
 
-    if (pdhElement) {
-        pdhElement.textContent =
-            `PDH ${previousSession.high.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })}`;
-    }
+const currentPrice =
+    candles[candles.length - 1].close;
 
-    if (pdlElement) {
-        pdlElement.textContent =
-            `PDL ${previousSession.low.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })}`;
-    }
+if (pdhElement) {
 
+    pdhElement.textContent =
+        `PDH ${previousSession.high.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+
+    pdhElement.classList.toggle(
+        "above",
+        currentPrice > previousSession.high
+    );
+
+}
+
+if (pdlElement) {
+
+    pdlElement.textContent =
+        `PDL ${previousSession.low.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
+
+    pdlElement.classList.toggle(
+        "below",
+        currentPrice < previousSession.low
+    );
+
+}
     // Redraw with the updated previous-close reference
     drawSP500Chart(candles);
 
