@@ -7221,6 +7221,7 @@ getSP500DailyData().then(dailyCandles => {
         document.getElementById("chart-pdl");
 
     const currentPrice =
+        sp500LatestQuote?.price ??
         candles[candles.length - 1].close;
 
     if (pdhElement) {
