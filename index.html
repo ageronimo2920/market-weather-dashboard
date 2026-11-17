@@ -299,6 +299,15 @@ h2 {
     margin-bottom: 6px;
 }
 
+.price-tick {
+    display: inline-block;
+    margin-left: 5px;
+    color: #ffffff;
+    font-size: 0.65em;
+    line-height: 1;
+    vertical-align: middle;
+}
+
 .market-change {
     font-size: 18px;
     font-weight: 600;
@@ -4186,7 +4195,7 @@ function updateMarketCard(
 
     if (!data) {
 
-        priceEl.textContent = "--";
+        setMarketPriceDisplay(priceEl, "--", options.symbol);
 
         updateMarketLevelIndicator(id, NaN);
 
@@ -4224,7 +4233,7 @@ function updateMarketCard(
             formatNumber(data.price);
     }
 
-    priceEl.textContent = priceText;
+    setMarketPriceDisplay(priceEl, priceText, options.symbol);
 
     updateMarketLevelIndicator(id, data.price);
 
@@ -4424,7 +4433,7 @@ function updateFinvizCard(id, data, options = {}) {
     changeEl.classList.remove("stale");
 
     if (!data || !Number.isFinite(data.price)) {
-        priceEl.textContent = "--";
+        setMarketPriceDisplay(priceEl, "--", options.symbol);
         changeEl.textContent = "--";
 	priceEl.classList.remove("stale");
         changeEl.classList.remove("stale");
@@ -4443,7 +4452,7 @@ function updateFinvizCard(id, data, options = {}) {
         priceText = formatNumber(data.price);
     }
 
-    priceEl.textContent = priceText;
+    setMarketPriceDisplay(priceEl, priceText, options.symbol);
 
     // STALE DATA — SAME RULE AS FULL VIEW
 
@@ -5239,6 +5248,82 @@ function updateMarketConditionBanner(
 }
 
 /* =========================================================
+   PRICE MOVEMENT INDICATORS
+   ========================================================= */
+
+const previousMarketPrices = {};
+const currentMarketMovements = {};
+
+function updateMarketPriceMovements(quotes) {
+
+    const entries = {
+        "^GSPC": quotes.sp500,
+        "^IXIC": quotes.nasdaq,
+        "^RUT": quotes.russell,
+        "^DJI": quotes.dow,
+        "^VIX": quotes.vix,
+        "^TNX": quotes.tnx,
+        "CL=F": quotes.wti,
+        "ES=F": quotes.futures,
+        "NQ=F": quotes.nasdaqFutures,
+        "RTY=F": quotes.russellFutures,
+        "YM=F": quotes.dowFutures,
+        "^N225": quotes.nikkei,
+        "^STOXX50E": quotes.eurostoxx
+    };
+
+    for (const [symbol, data] of Object.entries(entries)) {
+
+        if (
+            !data ||
+            typeof data.price !== "number" ||
+            !Number.isFinite(data.price)
+        ) {
+            continue;
+        }
+
+        const previous = previousMarketPrices[symbol];
+
+        if (previous === undefined) {
+            currentMarketMovements[symbol] = "";
+        } else if (data.price > previous) {
+            currentMarketMovements[symbol] = "▲";
+        } else if (data.price < previous) {
+            currentMarketMovements[symbol] = "▼";
+        }
+
+        previousMarketPrices[symbol] = data.price;
+    }
+}
+
+/* PRICE DISPLAY WITH MOVEMENT INDICATOR */
+
+function setMarketPriceDisplay(priceEl, priceText, symbol) {
+
+    let valueEl = priceEl.querySelector(".price-value");
+    let movementEl = priceEl.querySelector(".price-tick");
+
+    if (!valueEl || !movementEl) {
+
+        priceEl.textContent = "";
+
+        valueEl = document.createElement("span");
+        valueEl.className = "price-value";
+
+        movementEl = document.createElement("span");
+        movementEl.className = "price-tick";
+        movementEl.setAttribute("aria-hidden", "true");
+
+        priceEl.append(valueEl, movementEl);
+    }
+
+    valueEl.textContent = priceText;
+
+    movementEl.textContent =
+        currentMarketMovements[symbol] || "";
+}
+
+/* =========================================================
    MARKET UPDATE
    ========================================================= */
 
@@ -5277,6 +5362,21 @@ async function updateMarkets() {
 
         ]);
 
+updateMarketPriceMovements({
+    sp500,
+    nasdaq,
+    russell,
+    dow,
+    vix,
+    tnx,
+    wti,
+    futures,
+    nasdaqFutures,
+    russellFutures,
+    dowFutures,
+    nikkei,
+    eurostoxx
+});
 
     sp500LatestQuote = sp500;
 
@@ -5336,23 +5436,30 @@ async function updateMarkets() {
 
 /* Finviz */
 
-updateFinvizCard("sp500", sp500);
-updateFinvizCard("nasdaq", nasdaq);
-updateFinvizCard("russell", russell);
-updateFinvizCard("dow", dow);
+updateFinvizCard("sp500", sp500, { symbol: "^GSPC" });
+updateFinvizCard("nasdaq", nasdaq, { symbol: "^IXIC" });
+updateFinvizCard("russell", russell, { symbol: "^RUT" });
+updateFinvizCard("dow", dow, { symbol: "^DJI" });
 
-updateFinvizCard("sp500f", futures);
-updateFinvizCard("nasdaqf", nasdaqFutures);
-updateFinvizCard("russellf", russellFutures);
-updateFinvizCard("dowf", dowFutures);
+updateFinvizCard("sp500f", futures, { symbol: "ES=F" });
+updateFinvizCard("nasdaqf", nasdaqFutures, { symbol: "NQ=F" });
+updateFinvizCard("russellf", russellFutures, { symbol: "RTY=F" });
+updateFinvizCard("dowf", dowFutures, { symbol: "YM=F" });
 
-updateFinvizCard("nikkei", nikkei);
-updateFinvizCard("eurostoxx", eurostoxx);
+updateFinvizCard("nikkei", nikkei, { symbol: "^N225" });
+updateFinvizCard("eurostoxx", eurostoxx, { symbol: "^STOXX50E" });
 
-updateFinvizCard("tnx", tnx, { yield: true });
-updateFinvizCard("wti", wti, { commodity: true });
-updateFinvizCard("vix", vix);
+updateFinvizCard("tnx", tnx, {
+    symbol: "^TNX",
+    yield: true
+});
 
+updateFinvizCard("wti", wti, {
+    symbol: "CL=F",
+    commodity: true
+});
+
+updateFinvizCard("vix", vix, { symbol: "^VIX" });
     /* Overview */
 
     updateOverviewMarketItem("sp500", sp500);
