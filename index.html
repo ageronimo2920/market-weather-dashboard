@@ -447,7 +447,7 @@ h2 {
     font-weight: 500;
 }
 
-#chart-s2 {
+#chart-s3 {
     border-left: 1px solid #555b66;
     padding-left: 12px;
     margin-left: 3px;
@@ -2455,15 +2455,19 @@ body.finviz-mode .page-header {
                     <div class="chart-title">
                         Intraday
 
-			<span class="chart-levels">
-			    <span class="chart-level" id="chart-pdh">PDH --</span>
-			    <span class="chart-level" id="chart-pdl">PDL --</span>
-			    <span class="chart-level" id="chart-s2">S2 --</span>
-			    <span class="chart-level" id="chart-s1">S1 --</span>
-			    <span class="chart-level" id="chart-pp">PP --</span>
-			    <span class="chart-level" id="chart-r1">R1 --</span>
-			    <span class="chart-level" id="chart-r2">R2 --</span>
-			</span>
+			
+<span class="chart-levels">
+    <span class="chart-level" id="chart-pdh">PDH --</span>
+    <span class="chart-level" id="chart-pdl">PDL --</span>
+    <span class="chart-level" id="chart-s3">S3 --</span>
+    <span class="chart-level" id="chart-s2">S2 --</span>
+    <span class="chart-level" id="chart-s1">S1 --</span>
+    <span class="chart-level" id="chart-pp">PP --</span>
+    <span class="chart-level" id="chart-r1">R1 --</span>
+    <span class="chart-level" id="chart-r2">R2 --</span>
+    <span class="chart-level" id="chart-r3">R3 --</span>
+</span>
+
                  </div>
 
                   <div
@@ -7254,33 +7258,42 @@ getSP500DailyData().then(dailyCandles => {
 
     }
 
-    // Calculate daily pivot levels
-    const range =
-        previousHigh - previousLow;
 
-    const pp =
-        (previousHigh + previousLow + previousClose) / 3;
+// Calculate daily pivot levels
+const range =
+    previousHigh - previousLow;
 
-    const r1 =
-        (2 * pp) - previousLow;
+const pp =
+    (previousHigh + previousLow + previousClose) / 3;
 
-    const s1 =
-        (2 * pp) - previousHigh;
+const r1 =
+    (2 * pp) - previousLow;
 
-    const r2 =
-        pp + range;
+const s1 =
+    (2 * pp) - previousHigh;
 
-    const s2 =
-        pp - range;
+const r2 =
+    pp + range;
 
-    // Update pivot level displays
-    const pivotLevels = [
-        { id: "chart-s2", label: "S2", value: s2 },
-        { id: "chart-s1", label: "S1", value: s1 },
-        { id: "chart-pp", label: "PP", value: pp },
-        { id: "chart-r1", label: "R1", value: r1 },
-        { id: "chart-r2", label: "R2", value: r2 }
-    ];
+const s2 =
+    pp - range;
+
+const r3 =
+    previousHigh + (2 * (pp - previousLow));
+
+const s3 =
+    previousLow - (2 * (previousHigh - pp));
+
+// Update pivot level displays
+const pivotLevels = [
+    { id: "chart-s3", label: "S3", value: s3 },
+    { id: "chart-s2", label: "S2", value: s2 },
+    { id: "chart-s1", label: "S1", value: s1 },
+    { id: "chart-pp", label: "PP", value: pp },
+    { id: "chart-r1", label: "R1", value: r1 },
+    { id: "chart-r2", label: "R2", value: r2 },
+    { id: "chart-r3", label: "R3", value: r3 }
+];
 
     pivotLevels.forEach(level => {
 
