@@ -4883,203 +4883,175 @@ if (marketPulseJoke) {
 }
 
 
+
 function updateMarketPulse(
     sp500,
     nasdaq,
+    russell,
+    dow,
     vix,
     tnx,
-    wti
+    wti,
+    breadth
 ) {
 
     if (
-        !sp500 ||
-        !nasdaq ||
-        !vix ||
-        !tnx ||
-        !wti
+        !sp500 || !nasdaq || !russell || !dow ||
+        !vix || !tnx || !wti || !breadth
     ) {
-
         return;
     }
 
-    const stocksUp =
-        sp500.changePct > 0 &&
-        nasdaq.changePct > 0;
+    const changes = [
+        sp500.changePct,
+        nasdaq.changePct,
+        russell.changePct,
+        dow.changePct
+    ].map(Number);
 
-    const stocksDown =
-        sp500.changePct < 0 &&
-        nasdaq.changePct < 0;
+    if (!changes.every(Number.isFinite)) return;
 
-    const yieldsDown =
-        tnx.change < 0;
+    /* Stock participation */
 
-    const yieldsUp =
-        tnx.change > 0;
+    const upCount = changes.filter(change => change > 0.05).length;
+    const downCount = changes.filter(change => change < -0.05).length;
 
-    const oilDown =
-        wti.changePct < 0;
+    const stocksUp = upCount >= 3;
+    const stocksDown = downCount >= 3;
 
-    const oilUp =
-        wti.changePct > 0;
+    /* Market breadth */
 
-    const volatilityDown =
-        vix.changePct < 0;
+    const advancingPct = breadth.advancingPct;
 
-    const volatilityUp =
-        vix.changePct > 0;
+    const breadthStrong = advancingPct > 55;
+    const breadthWeak = advancingPct < 45;
 
-    let riskOnScore = 0;
-    let riskOffScore = 0;
+    const breadthTrendStrong =
+        breadth.above50 > 60 ||
+        breadth.above200 > 60;
 
-    if (stocksUp) riskOnScore++;
-    if (stocksDown) riskOffScore++;
+    const breadthTrendWeak =
+        breadth.above50 < 40 &&
+        breadth.above200 < 40;
 
-    if (yieldsDown) riskOnScore++;
-    if (yieldsUp) riskOffScore++;
+    /* Macro conditions */
 
-    if (oilDown) riskOnScore++;
-    if (oilUp) riskOffScore++;
+    const yieldsDown = tnx.change < 0;
+    const yieldsUp = tnx.change > 0;
 
-    if (volatilityDown) riskOnScore++;
-    if (volatilityUp) riskOffScore++;
+    const oilDown = wti.changePct < 0;
+    const oilUp = wti.changePct > 0;
+
+    const volatilityDown = vix.changePct < 0;
+    const volatilityUp = vix.changePct > 0;
+
+    /* Overall market classification */
 
     let label;
     let icon;
 
     if (
-        riskOnScore >= 3 &&
-        riskOnScore > riskOffScore
+        stocksUp &&
+        breadthStrong &&
+        breadthTrendStrong
     ) {
-
-        label =
-            "RISK-ON";
-
-        icon =
-            "🟢";
+        label = "RISK-ON";
+        icon = "🟢";
 
     } else if (
-        riskOffScore >= 3 &&
-        riskOffScore > riskOnScore
+        stocksDown &&
+        (breadthWeak || breadthTrendWeak)
     ) {
-
-        label =
-            "RISK-OFF";
-
-        icon =
-            "🔴";
+        label = "RISK-OFF";
+        icon = "🔴";
 
     } else {
-
-        label =
-            "MIXED";
-
-        icon =
-            "🟡";
+        label = "MIXED";
+        icon = "🟡";
     }
 
-    const stockText =
-        stocksUp
-            ? "Stocks ↑"
-            : stocksDown
-                ? "Stocks ↓"
-                : "Stocks mixed";
+    /* Description */
 
-    const yieldText =
-        yieldsDown
-            ? "Yields ↓"
-            : yieldsUp
-                ? "Yields ↑"
-                : "Yields flat";
+    const stockText = stocksUp
+        ? "Stocks ↑"
+        : stocksDown
+            ? "Stocks ↓"
+            : "Stocks mixed";
 
-    const oilText =
-        oilDown
-            ? "Oil ↓"
-            : oilUp
-                ? "Oil ↑"
-                : "Oil flat";
+    const breadthText = breadthStrong
+        ? "Breadth strong"
+        : breadthWeak
+            ? "Breadth weak"
+            : "Breadth mixed";
 
-    const volatilityText =
-        volatilityDown
-            ? "VIX ↓"
-            : volatilityUp
-                ? "VIX ↑"
-                : "VIX flat";
+    const yieldText = yieldsDown
+        ? "Yields ↓"
+        : yieldsUp
+            ? "Yields ↑"
+            : "Yields flat";
+
+    const oilText = oilDown
+        ? "Oil ↓"
+        : oilUp
+            ? "Oil ↑"
+            : "Oil flat";
+
+    const volatilityText = volatilityDown
+        ? "VIX ↓"
+        : volatilityUp
+            ? "VIX ↑"
+            : "VIX flat";
 
     const description =
-        `${stockText} · ${yieldText} · ${oilText} · ${volatilityText}`;
+        `${stockText} · ${breadthText} · ${yieldText} · ${oilText} · ${volatilityText}`;
 
+    /* Update dashboard elements safely */
 
+    const pulseIcon = document.getElementById("pulse-icon");
+    const pulseLabel = document.getElementById("pulse-label");
+    const pulseDescription = document.getElementById("pulse-description");
+    const pulseUpdated = document.getElementById("pulse-updated");
 
-    /* Legacy standalone Market Pulse elements (optional) */
+    if (pulseIcon) pulseIcon.textContent = icon;
+    if (pulseLabel) pulseLabel.textContent = label;
+    if (pulseDescription) pulseDescription.textContent = description;
 
-const pulseIcon = document.getElementById("pulse-icon");
-const pulseLabel = document.getElementById("pulse-label");
-const pulseDescription = document.getElementById("pulse-description");
-const pulseUpdated = document.getElementById("pulse-updated");
+    if (pulseUpdated) {
+        pulseUpdated.textContent =
+            `Updated ${new Date().toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+                second: "2-digit"
+            })}`;
+    }
 
-if (pulseIcon) pulseIcon.textContent = icon;
-if (pulseLabel) pulseLabel.textContent = label;
-if (pulseDescription) pulseDescription.textContent = description;
-if (pulseUpdated) {
-    pulseUpdated.textContent =
-        `Updated ${new Date().toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            second: "2-digit"
-        })}`;
-}
+    const overviewIcon = document.getElementById("overview-pulse-icon");
+    if (overviewIcon) overviewIcon.textContent = icon;
 
-    document.getElementById(
-        "overview-pulse-icon"
-    ).textContent =
-        icon;
+    const finvizDot = document.getElementById("finviz-pulse-dot");
+    if (finvizDot) finvizDot.textContent = icon;
 
-/* Finviz Market Pulse */
+    const finvizLabel = document.getElementById("finviz-pulse-label");
+    if (finvizLabel) finvizLabel.textContent = label;
 
-document.getElementById(
-    "finviz-pulse-dot"
-).textContent = icon;
-
-document.getElementById(
-    "finviz-pulse-label"
-).textContent = label;
-
-        /* FULL VIEW MARKET HEADER */
-
-    const marketPulseDot = document.getElementById(
-        "market-pulse-dot"
-    );
+    const marketPulseDot = document.getElementById("market-pulse-dot");
 
     if (marketPulseDot) {
         marketPulseDot.textContent = icon;
         marketPulseDot.setAttribute("title", label);
     }
 
-    const marketPulseStatus = document.getElementById(
-        "market-pulse-status"
-    );
+    const marketPulseStatus = document.getElementById("market-pulse-status");
+    if (marketPulseStatus) marketPulseStatus.textContent = label;
 
-    if (marketPulseStatus) {
-        marketPulseStatus.textContent = label;
-    }
+    const marketPulseJoke = document.getElementById("market-pulse-joke");
+    if (marketPulseJoke) marketPulseJoke.textContent = description;
 
-    const marketPulseJoke = document.getElementById(
-        "market-pulse-joke"
-    );
+    const overviewLabel = document.getElementById("overview-pulse-label");
+    if (overviewLabel) overviewLabel.textContent = label;
 
-    if (marketPulseJoke) {
-        marketPulseJoke.textContent = description;
-    }
-
-    document.getElementById(
-        "overview-pulse-label"
-    ).textContent =
-        label;
-
-    document.getElementById(
-        "overview-pulse-description"
-    ).textContent =
-        description;
+    const overviewDescription = document.getElementById("overview-pulse-description");
+    if (overviewDescription) overviewDescription.textContent = description;
 }
 
 /* =========================================================
@@ -5474,15 +5446,29 @@ updateFinvizCard("vix", vix, { symbol: "^VIX" });
     updateOverviewSecondary("eurostoxx", eurostoxx);
 
 
-    /* Market Pulse */
+/* Market Pulse */
 
-    updateMarketPulse(
-        sp500,
-        nasdaq,
-        vix,
-        tnx,
-        wti
-    );
+latestMarketPulseQuotes = {
+    sp500,
+    nasdaq,
+    russell,
+    dow,
+    vix,
+    tnx,
+    wti
+};
+
+updateMarketPulse(
+    sp500,
+    nasdaq,
+    russell,
+    dow,
+    vix,
+    tnx,
+    wti,
+    latestBreadth
+);
+
 }
 
 
@@ -8576,6 +8562,9 @@ function updatePageClock() {
    S&P 500 BREADTH
    ========================================================= */
 
+let latestBreadth = null;
+let latestMarketPulseQuotes = null;
+
 async function updateBreadth() {
 
     try {
@@ -8614,6 +8603,41 @@ async function updateBreadth() {
         const above200 =
             data.moving_averages.above_200_day_ma.percentage;
 
+if (!total || total <= 0) {
+    throw new Error("Invalid breadth total");
+}
+
+	/* Store latest breadth for Market Pulse */
+
+latestBreadth = {
+    advances,
+    declines,
+    total,
+    above50,
+    above200,
+    advancingPct: advances / total * 100
+};
+
+
+
+/* Refresh Market Pulse when new breadth arrives */
+
+if (latestMarketPulseQuotes) {
+
+    const q = latestMarketPulseQuotes;
+
+    updateMarketPulse(
+        q.sp500,
+        q.nasdaq,
+        q.russell,
+        q.dow,
+        q.vix,
+        q.tnx,
+        q.wti,
+        latestBreadth
+    );
+
+}	
         
 	document.getElementById("breadth-adv-detail")
            .textContent =
