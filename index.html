@@ -508,6 +508,33 @@ h2 {
     color: #777f89;
 }
 
+.chart-view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.chart-view-btn {
+    background: transparent;
+    border: 1px solid #3a404a;
+    color: #9299a4;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.chart-view-btn.active {
+    color: #ffffff;
+    border-color: #737d8b;
+    background: #252b34;
+}
+
+.chart-view-btn:hover {
+    color: #ffffff;
+}
+
 /* =========================================================
    S&P 500 DAILY MOVING AVERAGES
    ========================================================= */
@@ -2455,37 +2482,43 @@ body.finviz-mode .page-header {
 
         <div class="section">
 
-            <h2>S&amp;P 500 · 5-MINUTE</h2>
+            <h2>S&amp;P 500 · CHART</h2>
 
             <div class="chart-card">
 
                 <div class="chart-header">
 
                     <div class="chart-title">
-                        Intraday
 
-			
-<span class="chart-levels">
-    <span class="chart-level" id="chart-pdh">PDH --</span>
-    <span class="chart-level" id="chart-pdl">PDL --</span>
-    <span class="chart-level" id="chart-s3">S3 --</span>
-    <span class="chart-level" id="chart-s2">S2 --</span>
-    <span class="chart-level" id="chart-s1">S1 --</span>
-    <span class="chart-level" id="chart-pp">PP --</span>
-    <span class="chart-level" id="chart-r1">R1 --</span>
-    <span class="chart-level" id="chart-r2">R2 --</span>
-    <span class="chart-level" id="chart-r3">R3 --</span>
-</span>
+    <div class="chart-view-toggle">
+        <button
+            id="sp500-intraday-btn"
+            class="chart-view-btn active"
+            type="button"
+        >INTRADAY</button>
 
-                 </div>
+        <button
+            id="sp500-year-btn"
+            class="chart-view-btn"
+            type="button"
+        >1 YEAR</button>
+    </div>
 
-                  <div
-                        class="chart-current"
-                        id="chart-current"
-                    >
-                        --
+    <span id="sp500-chart-levels" class="chart-levels">
 
-                    </div>
+        <span class="chart-level" id="chart-pdh">PDH --</span>
+        <span class="chart-level" id="chart-pdl">PDL --</span>
+        <span class="chart-level" id="chart-s3">S3 --</span>
+        <span class="chart-level" id="chart-s2">S2 --</span>
+        <span class="chart-level" id="chart-s1">S1 --</span>
+        <span class="chart-level" id="chart-pp">PP --</span>
+        <span class="chart-level" id="chart-r1">R1 --</span>
+        <span class="chart-level" id="chart-r2">R2 --</span>
+        <span class="chart-level" id="chart-r3">R3 --</span>
+
+    </span>
+
+</div>
 
                 </div>
 
@@ -3177,23 +3210,35 @@ function setView(view) {
     );
 
 
-    if (
-        view === "full" &&
-        sp500ChartCache &&
-        sp500ChartCache.length
-    ) {
+ 
+if (view === "full") {
 
-        setTimeout(
-            () => {
+    setTimeout(() => {
 
-                drawSP500Chart(
-                    sp500ChartCache
-                );
+        if (sp500ChartMode === "year") {
 
-            },
-            20
-        );
-    }
+            if (sp500DailyCache && sp500DailyCache.length) {
+
+                drawSP500YearChart(sp500DailyCache);
+
+            } else {
+
+                setSP500ChartMode("year");
+
+            }
+
+        } else if (
+            sp500ChartCache &&
+            sp500ChartCache.length
+        ) {
+
+            drawSP500Chart(sp500ChartCache);
+
+        }
+
+    }, 20);
+}
+
 
 
     if (
@@ -5491,6 +5536,8 @@ let sp500DailyCacheTime =
 
 let sp500PreviousClose = null;
 
+let sp500ChartMode = "intraday";
+
 async function getSP500ChartData() {
 
     const yahooUrl =
@@ -6108,6 +6155,533 @@ loading.style.display = "none";}
 
 
 /* =========================================================
+   S&P 500 1-YEAR DAILY CHART
+   ========================================================= */
+
+function drawSP500YearChart(candles) {
+
+    const canvas =
+        document.getElementById("sp500-chart");
+
+    const loading =
+        document.getElementById("chart-loading");
+
+    if (!canvas || !candles || !candles.length) {
+        return;
+    }
+
+
+// Include today's candle once the regular
+// NYSE session has closed at 4:00 PM Eastern.
+
+const now = new Date();
+
+const easternParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hourCycle: "h23"
+}).formatToParts(now);
+
+const getPart = type =>
+    easternParts.find(part => part.type === type)?.value;
+
+const todayKey =
+    `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+
+const easternHour = Number(getPart("hour"));
+
+const includeToday = easternHour >= 16;
+
+const completed = candles.filter(candle => {
+
+    const candleKey = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(candle.time);
+
+    return includeToday
+        ? candleKey <= todayKey
+        : candleKey < todayKey;
+});
+
+
+    if (completed.length < 200) {
+        if (loading) {
+            loading.textContent = "Not enough daily data";
+            loading.style.display = "flex";
+        }
+        return;
+    }
+
+    // Calculate moving averages using the full history
+    // before limiting the visible chart to one year.
+
+    const enriched = completed.map((candle, index) => {
+
+        function average(period) {
+
+            if (index < period - 1) {
+                return null;
+            }
+
+            let total = 0;
+
+            for (
+                let i = index - period + 1;
+                i <= index;
+                i++
+            ) {
+                total += completed[i].close;
+            }
+
+            return total / period;
+        }
+
+        return {
+            ...candle,
+            sma20: average(20),
+            sma50: average(50),
+            sma200: average(200)
+        };
+    });
+
+    // Approximately 252 completed trading sessions.
+    const visible = enriched.slice(-252);
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    const width = Math.max(300, rect.width);
+    const height = Math.max(160, rect.height);
+
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    const padding = {
+        top: 28,
+        right: 58,
+        bottom: 25,
+        left: 6
+    };
+
+    const chartWidth =
+        width - padding.left - padding.right;
+
+    const chartHeight =
+        height - padding.top - padding.bottom;
+
+    const allPrices = [];
+
+    visible.forEach(candle => {
+
+        allPrices.push(candle.high);
+        allPrices.push(candle.low);
+
+        if (candle.sma20 !== null) {
+            allPrices.push(candle.sma20);
+        }
+
+        if (candle.sma50 !== null) {
+            allPrices.push(candle.sma50);
+        }
+
+        if (candle.sma200 !== null) {
+            allPrices.push(candle.sma200);
+        }
+    });
+
+    let minPrice = Math.min(...allPrices);
+    let maxPrice = Math.max(...allPrices);
+
+    const priceRange = maxPrice - minPrice;
+    const pricePadding = priceRange * 0.06;
+
+    minPrice -= pricePadding;
+    maxPrice += pricePadding;
+
+    const priceToY = price =>
+        padding.top +
+        (maxPrice - price) /
+        (maxPrice - minPrice) *
+        chartHeight;
+
+    const slotWidth =
+        chartWidth / visible.length;
+
+    const candleWidth =
+        Math.max(1, Math.min(5, slotWidth * 0.70));
+
+    // Grid and price axis
+
+    ctx.strokeStyle = "#272c34";
+    ctx.lineWidth = 1;
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "#777f89";
+    ctx.textAlign = "left";
+
+    for (let i = 0; i <= 4; i++) {
+
+        const y =
+            padding.top + chartHeight * i / 4;
+
+        const price =
+            maxPrice -
+            (maxPrice - minPrice) * i / 4;
+
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(width - padding.right, y);
+        ctx.stroke();
+
+        ctx.fillText(
+            price.toFixed(0),
+            width - padding.right + 6,
+            y + 3
+        );
+    }
+
+    // Daily candlesticks
+
+    visible.forEach((candle, index) => {
+
+        const x =
+            padding.left +
+            slotWidth * index +
+            slotWidth / 2;
+
+        const openY = priceToY(candle.open);
+        const closeY = priceToY(candle.close);
+        const highY = priceToY(candle.high);
+        const lowY = priceToY(candle.low);
+
+        const rising =
+            candle.close >= candle.open;
+
+        const color =
+            rising ? "#59c98b" : "#ef7373";
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1;
+
+        // Wick
+        ctx.beginPath();
+        ctx.moveTo(x, highY);
+        ctx.lineTo(x, lowY);
+        ctx.stroke();
+
+        // Candle body
+        const bodyTop =
+            Math.min(openY, closeY);
+
+        const bodyHeight =
+            Math.max(1, Math.abs(closeY - openY));
+
+        ctx.fillRect(
+            x - candleWidth / 2,
+            bodyTop,
+            candleWidth,
+            bodyHeight
+        );
+    });
+
+    // SMA lines
+
+    const smaLines = [
+        {
+            key: "sma20",
+            color: "#3b82f6",
+            label: "SMA 20"
+        },
+        {
+            key: "sma50",
+            color: "#f59e0b",
+            label: "SMA 50"
+        },
+        {
+            key: "sma200",
+            color: "#a78bfa",
+            label: "SMA 200"
+        }
+    ];
+
+    smaLines.forEach(line => {
+
+        ctx.save();
+
+        ctx.strokeStyle = line.color;
+        ctx.lineWidth = 1.7;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+
+        let started = false;
+
+        visible.forEach((candle, index) => {
+
+            const value = candle[line.key];
+
+            if (value === null) {
+                return;
+            }
+
+            const x =
+                padding.left +
+                slotWidth * index +
+                slotWidth / 2;
+
+            const y = priceToY(value);
+
+            if (!started) {
+                ctx.moveTo(x, y);
+                started = true;
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+
+        ctx.stroke();
+        ctx.restore();
+    });
+
+    // Compact legend
+
+    const legend = [
+        { label: "PRICE", color: "#59c98b" },
+        { label: "SMA 20", color: "#3b82f6" },
+        { label: "SMA 50", color: "#f59e0b" },
+        { label: "SMA 200", color: "#a78bfa" }
+    ];
+
+    let legendX = padding.left;
+
+    ctx.font = "9px Arial";
+    ctx.textBaseline = "middle";
+
+    legend.forEach(item => {
+
+        ctx.fillStyle = item.color;
+        ctx.fillRect(legendX, 9, 7, 7);
+
+        ctx.fillStyle = "#aeb4bd";
+        ctx.fillText(item.label, legendX + 11, 12.5);
+
+        legendX +=
+            ctx.measureText(item.label).width + 23;
+    });
+
+    // Month labels
+
+    ctx.fillStyle = "#777f89";
+    ctx.font = "9px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    const labelCount = 5;
+
+    for (let i = 0; i < labelCount; i++) {
+
+        const index = Math.round(
+            i * (visible.length - 1) /
+            (labelCount - 1)
+        );
+
+        const candle = visible[index];
+
+        const x =
+            padding.left +
+            slotWidth * index +
+            slotWidth / 2;
+
+        const label =
+            new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/New_York",
+                month: "short",
+                year: "2-digit"
+            }).format(candle.time);
+
+        ctx.fillText(
+            label,
+            x,
+            height - 5
+        );
+    }
+
+    if (loading) {
+        loading.style.display = "none";
+    }
+}
+
+
+/* =========================================================
+   S&P 500 CHART MODE SWITCH
+   ========================================================= */
+
+async function setSP500ChartMode(mode) {
+
+    sp500ChartMode = mode;
+
+    const intradayButton =
+        document.getElementById("sp500-intraday-btn");
+
+    const yearButton =
+        document.getElementById("sp500-year-btn");
+
+    const levels =
+        document.getElementById("sp500-chart-levels");
+
+    const loading =
+        document.getElementById("chart-loading");
+
+    intradayButton.classList.toggle(
+        "active",
+        mode === "intraday"
+    );
+
+    yearButton.classList.toggle(
+        "active",
+        mode === "year"
+    );
+
+    if (levels) {
+        levels.style.display =
+            mode === "year" ? "none" : "";
+    }
+
+    if (mode === "year") {
+
+        if (loading) {
+            loading.textContent = "Loading 1-year chart...";
+            loading.style.display = "flex";
+        }
+
+        const dailyCandles =
+            await getSP500DailyData();
+
+        // Prevent an outdated request from
+        // drawing after the user switches modes.
+        if (sp500ChartMode !== "year") {
+            return;
+        }
+
+        if (!dailyCandles || !dailyCandles.length) {
+            if (loading) {
+                loading.textContent = "Chart unavailable";
+                loading.style.display = "flex";
+            }
+            return;
+        }
+
+        drawSP500YearChart(dailyCandles);
+
+
+const now = new Date();
+
+const easternParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hourCycle: "h23"
+}).formatToParts(now);
+
+const getPart = type =>
+    easternParts.find(part => part.type === type)?.value;
+
+const todayKey =
+    `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+
+const easternHour = Number(getPart("hour"));
+
+const includeToday = easternHour >= 16;
+
+const completed = dailyCandles.filter(candle => {
+
+    const candleKey = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/New_York",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(candle.time);
+
+    return includeToday
+        ? candleKey <= todayKey
+        : candleKey < todayKey;
+});
+
+        if (completed.length) {
+
+            const latest =
+                completed[completed.length - 1];
+
+            const previous =
+                completed[completed.length - 2];
+
+            const chartCurrent =
+                document.getElementById("chart-current");
+
+            if (chartCurrent) {
+                chartCurrent.textContent =
+                    formatNumber(latest.close);
+
+                chartCurrent.className =
+                    "chart-current " +
+                    (
+                        !previous ||
+                        latest.close >= previous.close
+                            ? "positive"
+                            : "negative"
+                    );
+            }
+        }
+
+    } else {
+
+        if (sp500ChartCache && sp500ChartCache.length) {
+
+            drawSP500Chart(sp500ChartCache);
+
+        } else {
+
+            updateSP500Chart();
+        }
+    }
+}
+
+
+/* CHART MODE BUTTONS */
+
+document.getElementById(
+    "sp500-intraday-btn"
+).addEventListener("click", () => {
+
+    setSP500ChartMode("intraday");
+
+});
+
+document.getElementById(
+    "sp500-year-btn"
+).addEventListener("click", () => {
+
+    setSP500ChartMode("year");
+
+});
+
+
+
+/* =========================================================
    OVERVIEW MINI S&P CANDLESTICK CHART
    ========================================================= */
 
@@ -6406,47 +6980,52 @@ async function getSP500DailyData() {
         const quote =
             result?.indicators?.quote?.[0];
 
-        const highs =
-            quote?.high || [];
+const opens =
+    quote?.open || [];
 
-        const lows =
-            quote?.low || [];
+const highs =
+    quote?.high || [];
 
-        const closes =
-            quote?.close || [];
+const lows =
+    quote?.low || [];
 
+const closes =
+    quote?.close || [];
         const candles = [];
 
         for (
-            let i = 0;
-            i < timestamps.length;
-            i++
-        ) {
+    let i = 0;
+    i < timestamps.length;
+    i++
+) {
 
-            const high = highs[i];
-            const low = lows[i];
-            const close = closes[i];
+    const open = opens[i];
+    const high = highs[i];
+    const low = lows[i];
+    const close = closes[i];
 
-            if (
-                typeof high === "number" &&
-                Number.isFinite(high) &&
-                typeof low === "number" &&
-                Number.isFinite(low) &&
-                typeof close === "number" &&
-                Number.isFinite(close)
-            ) {
+    if (
+        typeof open === "number" &&
+        Number.isFinite(open) &&
+        typeof high === "number" &&
+        Number.isFinite(high) &&
+        typeof low === "number" &&
+        Number.isFinite(low) &&
+        typeof close === "number" &&
+        Number.isFinite(close)
+    ) {
 
-                candles.push({
-                    time:
-                        new Date(
-                            timestamps[i] * 1000
-                        ),
-                    high,
-                    low,
-                    close
-                });
-            }
-        }
+        candles.push({
+            time: new Date(timestamps[i] * 1000),
+            open,
+            high,
+            low,
+            close
+        });
+
+    }
+}
+         
 
         if (!candles.length) {
             throw new Error(
@@ -7424,44 +8003,38 @@ const pivotLevels = [
 
     });
 
-    // Redraw with the updated previous-close reference
+// Redraw intraday chart only when intraday mode is selected
+if (sp500ChartMode === "intraday") {
     drawSP500Chart(candles);
+}
 
-    if (document.body.classList.contains("overview-mode")) {
-        drawOverviewSP500Chart(candles);
-    }
-
+if (document.body.classList.contains("overview-mode")) {
+    drawOverviewSP500Chart(candles);
+}
 });
 
-    const latest =
-        candles[
-            candles.length - 1
-        ];
+ if (sp500ChartMode === "intraday") {
+
+    const latest = candles[candles.length - 1];
 
     const chartCurrent =
-        document.getElementById(
-            "chart-current"
-        );
+        document.getElementById("chart-current");
 
     chartCurrent.textContent =
-        formatNumber(
-            latest.close
-        );
+        formatNumber(latest.close);
 
     chartCurrent.className =
         "chart-current " +
-        (
-            latest.close >=
-                latest.open
-                ? "positive"
-                : "negative"
-        );
+        (latest.close >= latest.open
+            ? "positive"
+            : "negative");
+}
 
 
 
-    drawSP500Chart(
-        candles
-    );
+ if (sp500ChartMode === "intraday") {
+    drawSP500Chart(candles);
+}
 
     updateSP500PeriodReturns();
 
