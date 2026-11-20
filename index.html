@@ -4990,30 +4990,62 @@ function updateMarketPulse(
     const volatilityDown = vix.changePct < 0;
     const volatilityUp = vix.changePct > 0;
 
-    /* Overall market classification */
 
-    let label;
-    let icon;
+/* Overall market classification */
 
-    if (
-        stocksUp &&
-        breadthStrong &&
-        breadthTrendStrong
-    ) {
-        label = "RISK-ON";
-        icon = "🟢";
+let riskOnScore = 0;
+let riskOffScore = 0;
 
-    } else if (
-        stocksDown &&
-        (breadthWeak || breadthTrendWeak)
-    ) {
-        label = "RISK-OFF";
-        icon = "🔴";
+// 1. Stocks: all four indexes count as ONE signal.
+if (stocksUp) riskOnScore++;
+if (stocksDown) riskOffScore++;
 
-    } else {
-        label = "MIXED";
-        icon = "🟡";
-    }
+// 2. Treasury yields.
+if (yieldsDown) riskOnScore++;
+if (yieldsUp) riskOffScore++;
+
+// 3. Oil.
+if (oilDown) riskOnScore++;
+if (oilUp) riskOffScore++;
+
+// 4. VIX.
+if (volatilityDown) riskOnScore++;
+if (volatilityUp) riskOffScore++;
+
+// 5. Market breadth: ONE point maximum.
+const breadthStrongSignal =
+    breadthStrong || breadthTrendStrong;
+
+const breadthWeakSignal =
+    breadthWeak || breadthTrendWeak;
+
+// Conflicting breadth readings count as neutral.
+if (breadthStrongSignal && !breadthWeakSignal) {
+    riskOnScore++;
+} else if (breadthWeakSignal && !breadthStrongSignal) {
+    riskOffScore++;
+}
+
+let label;
+let icon;
+
+if (
+    riskOnScore >= 3 &&
+    riskOnScore > riskOffScore
+) {
+    label = "RISK-ON";
+    icon = "🟢";
+} else if (
+    riskOffScore >= 3 &&
+    riskOffScore > riskOnScore
+) {
+    label = "RISK-OFF";
+    icon = "🔴";
+} else {
+    label = "MIXED";
+    icon = "🟡";
+}
+
 
     /* Description */
 
@@ -5023,9 +5055,10 @@ function updateMarketPulse(
             ? "Stocks ↓"
             : "Stocks mixed";
 
-    const breadthText = breadthStrong
+const breadthText =
+    breadthStrongSignal && !breadthWeakSignal
         ? "Breadth strong"
-        : breadthWeak
+        : breadthWeakSignal && !breadthStrongSignal
             ? "Breadth weak"
             : "Breadth mixed";
 
